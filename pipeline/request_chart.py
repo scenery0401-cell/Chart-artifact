@@ -22,8 +22,32 @@ import deep_scan_job as DS
 SYMBOL = re.compile(r"[A-Z0-9^=.\-]{1,15}\Z")
 SOURCE_URL = "https://raw.githubusercontent.com/rreichel3/US-Stock-Symbols/main/{ex}/{ex}_full_tickers.json"
 
+# Align broad exchange/market sectors with the site's existing user-defined groups.
+SITE_SECTOR = {
+    "산업재": "산업·주택", "Industrials": "산업·주택",
+    "경기소비재": "소비·여행", "Consumer Discretionary": "소비·여행",
+    "소재": "원자재", "Basic Materials": "원자재",
+    "유틸리티": "전력", "Utilities": "전력",
+    "Healthcare": "헬스케어", "Health Care": "헬스케어",
+    "Finance": "금융", "Energy": "에너지",
+}
+# Checked against third-party sector profiles (2026-11-10).
+SECTOR_CORRECTIONS = {"A": "헬스케어", "UHAL": "산업·주택"}
+
+
+def website_sector(raw):
+    return SITE_SECTOR.get(raw, raw or "미분류")
+
 
 def classify(ticker, outdir, watch):
+    correction = SECTOR_CORRECTIONS.get(ticker)
+    if correction:
+        # An existing incorrect group should not override verified classification.
+        for group in watch.get("sectors", []):
+            for row in group.get("items", []):
+                if row.get("t") == ticker:
+                    return correction, row.get("name") or ticker, "verified_correction"
+        return correction, ticker, "verified_correction"
     for sector in watch.get("sectors", []):
         for row in sector.get("items", []):
             if row.get("t") == ticker:
@@ -35,7 +59,7 @@ def classify(ticker, outdir, watch):
         try:
             for row in json.loads(f.read_text(encoding="utf-8")).get("stocks", []):
                 if row.get("t") == ticker and row.get("grp") not in (None, "", "기타"):
-                    return row["grp"], row.get("name") or ticker, "daily_universe"
+                    return website_sector(row["grp"]), row.get("name") or ticker, "daily_universe"
         except (OSError, ValueError):
             pass
 
@@ -53,7 +77,7 @@ def classify(ticker, outdir, watch):
                 sec = (row.get("sector") or "").strip()
                 name = (row.get("name") or ticker).strip()
                 if sec:
-                    return DS.SECTOR_KO.get(sec, sec), name, "exchange_catalog"
+                    return website_sector(DS.SECTOR_KO.get(sec, sec)), name, "exchange_catalog"
                 return "미분류", name, "sector_missing"
         except (OSError, ValueError, TypeError) as e:
             print(f"Sector catalog {ex} unavailable: {e}", file=sys.stderr)

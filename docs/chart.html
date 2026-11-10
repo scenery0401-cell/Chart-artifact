@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}</style>
+<title>자동 선 차트 · 스윙 랩</title>
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="assets/d3.min.js"></script>
+<style>
+/* Layout: one working column — ticker bar, a TradingView-like chart panel that keeps its own dark slate in both
+   themes (the lines are drawn black and white, so the panel must stay mid-grey), then three reading panels. */
+:root {
+  --bg: #f3f3f1; --panel: #ffffff; --ink: #1f2226; --muted: #646a72; --line: #d9dbd6; --accent: #2f6f8f;
+  --ok: #1f8a6e; --bad: #c23f3a; --warn: #a66a00;
+  /* chart panel: same values in both themes on purpose */
+  --c-bg: #3a3c41; --c-grid: #46484e; --c-axis: #b9bcc2; --c-up: #2bb39a; --c-down: #e5534b; --c-black: #08090a; --c-white: #f4f4f4;
+  --c-fib: #5fd3c4; --c-ext: #ff7a7a; --c-box: #f2a7c3; --c-chan: #f2b84b; --c-entry: #6bb7ff; --c-stop: #ff6b6b; --c-tgt: #7bd88f; --c-ov: #ffd166;
+  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --f-num: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #17191c; --panel: #1f2226; --ink: #e8e9ea; --muted: #9aa0a8; --line: #33373c; --accent: #7cc0e0;
+  --ok: #45c39e; --bad: #f0716b; --warn: #e0a83c; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #17191c; --panel: #1f2226; --ink: #e8e9ea; --muted: #9aa0a8; --line: #33373c; --accent: #7cc0e0;
+  --ok: #45c39e; --bad: #f0716b; --warn: #e0a83c; color-scheme: dark }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 14px; line-height: 1.5; }
+.wrap { max-width: 78rem; margin: 0 auto; padding-block: 18px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 14px; }
+h1 { font-size: 1.35rem; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 0.95rem; font-weight: 600; margin: 0; }
+.top { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.top .sub { color: var(--muted); font-size: 0.85rem; margin: 2px 0 0; }
+form.q { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+form.q input { font: 500 0.95rem var(--f-num); text-transform: uppercase; width: 10rem; max-width: 100%; padding: 8px 10px; border: 1px solid var(--line);
+  border-radius: 6px; background: var(--panel); color: var(--ink); }
+button { font: inherit; cursor: pointer; }
+.btn { padding: 8px 14px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--panel); font-weight: 600; }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn:disabled { opacity: .5; cursor: default; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.status { font-size: 0.85rem; color: var(--muted); min-height: 1.3em; }
+.status.busy { color: var(--warn); } .status.err { color: var(--bad); } .status.ok { color: var(--ok); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 0.8rem var(--f-num); padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+.chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.chip small { font-family: var(--f-body); color: var(--muted); margin-left: 4px; font-size: 0.72rem; }
+.picker { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 4px 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); }
+.tabs button { border: 0; background: transparent; padding: 8px 10px 7px; font-size: 0.88rem; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+.tabs button span { font-family: var(--f-num); font-size: 0.75rem; color: var(--muted); margin-left: 4px; font-weight: 400; }
+.sectors { display: flex; flex-wrap: wrap; gap: 6px; }
+.sec { font-size: 0.82rem; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+.sec span { font-family: var(--f-num); font-size: 0.72rem; color: var(--muted); margin-left: 4px; }
+.sec[aria-pressed="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.sec[aria-pressed="true"] span { color: var(--panel); opacity: .75; }
+.tgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.5rem), 1fr)); gap: 6px; max-height: 14.5rem; overflow-y: auto; padding-right: 2px; }
+.tk { text-align: left; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); padding: 6px 9px; display: grid; grid-template-columns: 1fr auto; gap: 0 6px; align-items: baseline; min-width: 0; }
+.tk b { font-family: var(--f-num); font-size: 0.86rem; font-weight: 600; }
+.tk .cg { font-family: var(--f-num); font-size: 0.76rem; font-variant-numeric: tabular-nums; }
+.tk .nm { grid-column: 1 / -1; color: var(--muted); font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tk[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.tk .cg.none { color: var(--muted); }
+.bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel); }
+.seg button { border: 0; background: transparent; color: var(--ink); padding: 5px 11px; font-size: 0.85rem; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg button:disabled { opacity: .4; cursor: default; }
+.seg .seglab { padding: 5px 9px; font-size: 0.78rem; color: var(--muted); border-right: 1px solid var(--line); align-self: center; }
+.ovp { font-size: 0.7rem; padding: 0 6px; border-radius: 999px; background: var(--warn); color: var(--panel); font-weight: 600; margin-right: 6px; white-space: nowrap; }
+.lv .ovl { line-height: 1.45; }
+.layers { display: flex; flex-wrap: wrap; gap: 6px; }
+.layer { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; padding: 4px 9px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+.layer i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+.layer[aria-pressed="false"] { opacity: .45; }
+.chartbox { position: relative; background: var(--c-bg); border-radius: 8px; overflow: hidden; height: clamp(360px, 62vh, 680px); touch-action: none; }
+.chartbox svg { display: block; width: 100%; height: 100%; }
+.chartbox .hud { position: absolute; left: 12px; top: 8px; right: 70px; color: var(--c-axis); font: 0.8rem var(--f-num); pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chartbox .hud b { color: #fff; font-family: var(--f-body); font-weight: 600; margin-right: 8px; }
+.chartbox .msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--c-axis); font-size: 0.95rem; text-align: center; padding: 20px; }
+.hint { color: var(--muted); font-size: 0.78rem; margin: 0; }
+.grid3 { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card .meta { color: var(--muted); font-size: 0.78rem; }
+.lv { display: grid; grid-template-columns: 1fr auto auto; gap: 3px 12px; font-size: 0.85rem; align-items: baseline; }
+.lv .n { font-family: var(--f-num); font-variant-numeric: tabular-nums; text-align: right; }
+.lv .p { font-family: var(--f-num); font-variant-numeric: tabular-nums; text-align: right; min-width: 4.2em; }
+.lv .sep { grid-column: 1 / -1; border-top: 1px dashed var(--line); margin: 4px 0; display: flex; justify-content: space-between; color: var(--muted); font-size: 0.75rem; padding-top: 4px; }
+.sig { display: flex; flex-direction: column; gap: 3px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.sig:last-child { border-bottom: 0; padding-bottom: 0; }
+.sig .h { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.sig .h span:first-child { font-weight: 600; }
+.pill { font-size: 0.72rem; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.go { color: var(--ok); } .pill.wait { color: var(--warn); } .pill.off { color: var(--muted); }
+.sig p { margin: 0; font-size: 0.83rem; color: var(--muted); }
+.sig p b { color: var(--ink); font-weight: 500; font-family: var(--f-num); }
+.read p { margin: 0; font-size: 0.83rem; line-height: 1.6; }
+.read ul { margin: 0; padding-left: 1.1rem; font-size: 0.83rem; line-height: 1.6; display: flex; flex-direction: column; gap: 4px; }
+.num { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+.up { color: var(--ok); } .dn { color: var(--bad); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<style>.sitenav{display:flex;gap:4px;flex-wrap:wrap;max-width:78rem;margin:0 auto;padding:12px 16px 0}.sitenav a{font-size:.9rem;padding:6px 12px;border-radius:6px;color:var(--muted);text-decoration:none}.sitenav a[aria-current=page]{background:var(--ink);color:var(--panel)}.sitenav a:hover{color:var(--ink)}.sitenav a[aria-current=page]:hover{color:var(--panel)}</style>
+</head>
+<body>
+<nav class="sitenav" aria-label="사이트"><a href="index.html">오늘</a><a href="chart.html" aria-current="page">차트</a><a href="scan.html">스캔</a><a href="about.html">검증·한계</a></nav>
+<script>
+// 정적 파일을 읽는 자리(예전 Claude 아티팩트의 저장소 호출을 대신한다)
+(function () {
+  const J = (u) => fetch(u, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const snap = (d) => ({ exists: !!d, data: () => d });
+  let ixP = null; const index = () => (ixP = ixP || J('data/chart_index.json').then((a) => a || []));
+  const docs = (rows) => ({ docs: rows.map((r) => ({ data: () => r })) });
+  const db = {
+    doc(path) {
+      const [col, id] = path.split('/');
+      const get = () => col === 'config' && id === 'watchlist' ? J('data/watchlist.json').then(snap) : col === 'charts' ? J('data/charts/' + encodeURIComponent(id) + '.json').then(snap) : Promise.resolve(snap(null));
+      return { get, set: async () => {}, update: async () => {}, onSnapshot(cb) { get().then(cb); return () => {}; } };
+    },
+    collection(col) {
+      const all = () => (col === 'chart_index' ? index() : Promise.resolve([]));
+      return { onSnapshot(cb) { all().then((a) => cb(docs(a))); return () => {}; },
+        where(f, op, v) { return { get: () => all().then((a) => docs(a.filter((r) => r[f] === v))) }; } };
+    },
+  };
+  const downloads = { async save({ filename, data }) { const u = URL.createObjectURL(data), a = document.createElement('a'); a.href = u; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 3000); } };
+  window.claude = { use: async (cap) => (cap === 'db' ? db : cap === 'downloads' ? downloads : null) };
+})();
+</script>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>자동 선 차트</h1>
+      <p class="sub">관심종목과 지수·선물에 평행선·피보·변곡 구간·채널엔진 선을 매일 장 마감 뒤 자동으로 그린다. 매수 권유가 아니다.</p>
+    </div>
+    <form class="q" id="qform" autocomplete="off">
+      <label for="qin" class="hint">티커</label>
+      <input id="qin" name="q" placeholder="예: NVDA, ^NDX, 005930" aria-label="티커" maxlength="16">
+      <button class="btn" id="qgo" type="submit">보기</button>
+      <button class="btn ghost" id="qre" type="button" hidden>새로 받기</button>
+    </form>
+  </header>
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+  <section class="picker" aria-label="종목 고르기">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-fixed" aria-selected="true" aria-controls="pk-fixed">지수·선물</button>
+      <button type="button" role="tab" id="tab-watch" aria-selected="false" aria-controls="pk-watch">내 관심종목<span id="wlCount"></span></button>
+    </div>
+    <div id="pk-fixed" role="tabpanel" aria-labelledby="tab-fixed" class="chips"></div>
+    <div id="pk-watch" role="tabpanel" aria-labelledby="tab-watch" hidden>
+      <div class="sectors" id="sectors" aria-label="섹터"></div>
+      <div class="tgrid" id="tgrid" aria-label="섹터 종목"></div>
+    </div>
+  </section>
+
+  <div class="bar">
+    <div class="seg" role="group" aria-label="시간봉" id="tfseg">
+      <button type="button" data-tf="M" aria-pressed="false">월봉</button>
+      <button type="button" data-tf="W" aria-pressed="false">주봉</button>
+      <button type="button" data-tf="D" aria-pressed="true">일봉</button>
+      <button type="button" data-tf="H4" aria-pressed="false">4시간</button>
+    </div>
+    <div class="seg" role="group" aria-label="가격 눈금" id="scseg">
+      <button type="button" data-sc="lin" aria-pressed="true">선형</button>
+      <button type="button" data-sc="log" aria-pressed="false">로그</button>
+    </div>
+    <div class="seg" role="group" aria-label="큰 봉 선 겹쳐 보기" id="cyseg" title="위 시간봉에서 그린 선을 지금 시간봉에도 겹쳐 그린다">
+      <span class="seglab">큰 봉 선</span>
+      <button type="button" data-cy="off" aria-pressed="false">끔</button>
+      <button type="button" data-cy="one" aria-pressed="true">바로 위</button>
+      <button type="button" data-cy="all" aria-pressed="false">전부</button>
+    </div>
+    <div class="layers" id="layers">
+      <button type="button" class="layer" data-l="black" aria-pressed="true"><i style="background:var(--c-black);outline:1px solid #888"></i>검은 선</button>
+      <button type="button" class="layer" data-l="white" aria-pressed="true"><i style="background:var(--c-white);outline:1px solid #888"></i>흰 선</button>
+      <button type="button" class="layer" data-l="fib" aria-pressed="true"><i style="background:var(--c-fib)"></i>피보 되돌림</button>
+      <button type="button" class="layer" data-l="ext" aria-pressed="true"><i style="background:var(--c-ext)"></i>피보 확장</button>
+      <button type="button" class="layer" data-l="box" aria-pressed="true"><i style="background:var(--c-box)"></i>변곡 구간</button>
+      <button type="button" class="layer" data-l="chan" aria-pressed="false"><i style="background:var(--c-chan)"></i>채널엔진</button>
+      <button type="button" class="layer" data-l="plan" aria-pressed="true"><i style="background:var(--c-entry)"></i>엔진 계획</button>
+      <button type="button" class="layer" data-l="mid" aria-pressed="false"><i style="background:repeating-linear-gradient(90deg,#9a9da3 0 3px,transparent 3px 6px)"></i>중간선</button>
+      <button type="button" class="layer" data-l="ov" aria-pressed="true"><i style="background:var(--c-ov)"></i>겹침 표시</button>
+    </div>
+    <button class="btn ghost" id="csave" type="button" hidden title="지금 보이는 차트(켜 둔 선·확대 범위 그대로)를 PNG 그림으로 저장">차트 저장</button>
+  </div>
+
+  <div class="chartbox" id="chart">
+    <div class="msg" id="cmsg">차트를 불러오는 중</div>
+    <div class="hud" id="hud"></div>
+  </div>
+  <p class="hint">휠·두 손가락으로 확대, 끌어서 이동, 두 번 누르면 처음 범위. 굵은 점선은 큰 봉(위 시간봉)에서 가져온 선, 가는 점선은 중간선, 노란 띠는 선 두 개 이상이 0.5% 안에 겹친 자리다. 선에 커서를 대면 위에 선 이름이 뜬다.</p>
+
+  <section class="grid3">
+    <div class="card" id="near">
+      <h2>지금 자리</h2>
+      <div class="meta" id="nearMeta">—</div>
+      <div class="lv" id="nearList"></div>
+    </div>
+    <div class="card" id="sigs">
+      <h2>검증된 신호</h2>
+      <div id="sigList"></div>
+    </div>
+    <div class="card read">
+      <h2>선 읽는 법</h2>
+      <ul>
+        <li><b>검은 선</b>: 큰 저점 두 개(최저점과, 첫 큰 상승 뒤 그 저점을 깨지 않은 조정 저점)를 이은 기준선을 그 사이 고점 간격으로 평행 복사했다.</li>
+        <li><b>흰 선</b>: 최저점에서 첫 상승 폭만큼 같은 간격으로 그은 수평선이다.</li>
+        <li><b>피보 확장</b>: 같은 첫 상승의 1.618·2.618·4.236배.</li>
+        <li><b>변곡 구간</b>: 첫 조정의 고가와, 저가를 깨지 않고 다시 오르기 시작한 자리 사이.</li>
+        <li><b>피보 되돌림</b>: 깊은 눌림 스캐너와 같은 2년 사이클 고점·저점.</li>
+        <li><b>채널엔진·엔진 계획</b>: INVERT Channel Lab 엔진의 자동 채널과 눌림 지정가 계획(일봉).</li>
+        <li><b>큰 봉 선</b>: 주봉·월봉에서 그린 검은 선·흰 선을 날짜 기준으로 옮겨 지금 시간봉에 겹쳐 그린다(트레이딩뷰에서 그림을 그대로 두고 시간봉만 바꾼 것과 같다). 바로 위는 한 단계 위만, 전부는 위 시간봉 전체.</li>
+        <li><b>중간선</b>: 지금 시간봉의 이웃한 검은 선끼리, 흰 선끼리의 한가운데.</li>
+        <li><b>겹침</b>: 서로 다른 선이 지금 가격 기준 0.5% 안에 모인 자리. 지금 자리 목록에도 묶어서 보여 준다.</li>
+      <li><b>촘촘한 선 생략</b>: 바닥에서 몇 배 오른 종목은 기준점이 맨 아래에 잡혀 선 간격이 지금 가격에 비해 너무 좁아진다. 간격이 지금 가격의 6% 미만인 검은 선·흰 선 묶음은 그리지 않고, 지금 자리 칸에 무엇을 뺀는지 적는다.</li>
+      </ul>
+      <p class="hint">평행선·확장·변곡 구간은 차트 고수 스샷을 보고 역으로 만든 규칙이다. 예전 147종목 시험에서 이 평행선은 무작위로 옮긴 선과 반응이 같았으니 위치 참고용으로 본다. 깊은 눌림 0.618과 채널엔진 계획은 10년 백테스트로 확인한 규칙이다.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+  const store = { get(k, d) { try { const v = localStorage.getItem('alc:' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+                  set(k, v) { try { localStorage.setItem('alc:' + k, JSON.stringify(v)); } catch (e) {} } };
+  const ALIAS = { 'NAS100': '^NDX', 'NDX': '^NDX', 'NASDAQ': '^IXIC', 'NQ': 'NQ=F', 'ES': 'ES=F', 'SPX': '^GSPC', 'SP500': '^GSPC', 'KOSPI': '^KS11',
+    'KOSDAQ': '^KQ11', 'GOLD': 'GC=F', '금': 'GC=F', 'SILVER': 'SI=F', '은': 'SI=F', 'OIL': 'CL=F', 'WTI': 'CL=F', 'VIX': '^VIX', 'SOX': '^SOX', 'BTC': 'BTC-USD', 'DXY': 'DX-Y.NYB' };
+  const keyOf = (t) => t.replace(/\^/g, '~').replace(/=/g, '@');
+  function normalize(raw) {
+    let t = String(raw || '').trim().toUpperCase().replace(/\s+/g, '');
+    if (ALIAS[t]) t = ALIAS[t];
+    if (/^\d{6}$/.test(t)) t = t + '.KS';
+    return /^[A-Z0-9^=.\-]{1,15}$/.test(t) ? t : null;
+  }
+  const fmt = (p) => { if (p === null || p === undefined || !isFinite(p)) return '—'; const a = Math.abs(p);
+    return Number(p).toLocaleString('en-US', { minimumFractionDigits: a >= 1 ? 2 : 4, maximumFractionDigits: a >= 1 ? 2 : 4 }); };
+  const pct = (x) => (x > 0 ? '+' : '') + Number(x).toFixed(1) + '%';
+  const status = (text, kind) => { const s = $('status'); s.textContent = text || ''; s.className = 'status' + (kind ? ' ' + kind : ''); };
+
+  const LAYER_DEF = { black: true, white: true, fib: true, ext: true, box: true, chan: false, plan: true, mid: false, ov: true };
+  const view = { tf: store.get('tf', 'D'), sc: store.get('sc', 'lin'), cy: store.get('cy', 'one'), layers: Object.assign({}, LAYER_DEF, store.get('layers', {})),
+                 data: null, key: null, zoom: {}, mc: {}, index: {}, wl: null, pk: store.get('pk', 'fixed'), sector: store.get('sector', null) };
+  // 차트 위 고정 바로가기(관심종목 문서가 없을 때 기본값)
+  const FIXED_DEFAULT = [{ t: 'NQ=F', key: 'NQ@F', label: '나스닥 선물' }, { t: 'ES=F', key: 'ES@F', label: 'S&P 선물' }, { t: '^NDX', key: '~NDX', label: '나스닥100' },
+    { t: 'SOXX', key: 'SOXX', label: 'SOXX 반도체' }, { t: 'GC=F', key: 'GC@F', label: '금 선물' }, { t: '^KS11', key: '~KS11', label: '코스피' }];
+  let db = null, mcp = null, downloads = null, triggerId = null, unsubIndex = null, waitingFor = null;
+  const ORDER = ['M', 'W', 'D', 'H4'], TFN = { M: '월봉', W: '주봉', D: '일봉', H4: '4시간' };
+
+  // ---------- controls ----------
+  function press(group, attr, val) { group.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', b.dataset[attr] === val ? 'true' : 'false')); }
+  const syncCy = () => $('cyseg').querySelectorAll('button').forEach((b) => { b.disabled = view.tf === 'M'; });
+  press($('tfseg'), 'tf', view.tf); press($('scseg'), 'sc', view.sc); press($('cyseg'), 'cy', view.cy); syncCy();
+  document.querySelectorAll('#layers .layer').forEach((b) => b.setAttribute('aria-pressed', view.layers[b.dataset.l] ? 'true' : 'false'));
+  $('tfseg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || b.disabled) return; view.tf = b.dataset.tf; store.set('tf', view.tf); press($('tfseg'), 'tf', view.tf); syncCy(); draw(true); renderNear(); });
+  $('scseg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; view.sc = b.dataset.sc; store.set('sc', view.sc); press($('scseg'), 'sc', view.sc); draw(false); });
+  $('cyseg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || b.disabled) return; view.cy = b.dataset.cy; store.set('cy', view.cy); press($('cyseg'), 'cy', view.cy); draw(false); renderNear(); });
+  $('layers').addEventListener('click', (e) => { const b = e.target.closest('.layer'); if (!b) return; const l = b.dataset.l; view.layers[l] = !view.layers[l];
+    store.set('layers', view.layers); b.setAttribute('aria-pressed', view.layers[l] ? 'true' : 'false'); draw(false); renderNear(); });
+
+  // ---------- line geometry shared by the chart and the level list ----------
+  // Bars are [date, o, h, l, c]; a bar's date is its first trading day (H4: 'YYYY-MM-DD HH:MM').
+  const day = (s) => Date.parse(String(s).slice(0, 10) + 'T00:00:00Z') / 864e5;
+  function posIn(S, d) {            // fractional bar index of a calendar date inside timeframe S (S has date-only bars)
+    const b = S.bars, n = b.length, t = day(d), st = (j) => day(b[j][0]);
+    if (n < 2) return 0;
+    const k = Math.min(n - 1, 12);
+    if (t < st(0)) return (t - st(0)) / ((st(k) - st(0)) / k);
+    if (t >= st(n - 1)) return n - 1 + (t - st(n - 1)) / ((st(n - 1) - st(n - 1 - k)) / k);
+    let lo = 0, hi = n - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (st(m) <= t) lo = m; else hi = m; }
+    return lo + (t - st(lo)) / (st(hi) - st(lo));
+  }
+  function firstOn(G, d) {          // first bar of G on or after date d (for 4-hour bars, several share a date)
+    const b = G.bars, key = String(d).slice(0, 10); let lo = 0, hi = b.length;
+    while (lo < hi) { const m = (lo + hi) >> 1; if (b[m][0].slice(0, 10) < key) lo = m + 1; else hi = m; }
+    return lo < b.length ? lo : posIn(G, d);
+  }
+  const carryOf = (o, tf) => { const i = ORDER.indexOf(tf); if (view.cy === 'off' || i <= 0) return [];
+    return (view.cy === 'one' ? [ORDER[i - 1]] : ORDER.slice(0, i).reverse()).filter((s) => o.tfs[s]); };
+  // A black line of timeframe s as a function of bar index in timeframe g. For a higher timeframe the line is pinned at
+  // two dates (g's first bar and s's last bar) and drawn straight between them on g's bars, like a TradingView drawing.
+  function lineFn(o, s, b, g) {
+    const m = (b.y1 - b.y0) / (b.x1 - b.x0), at = (j) => b.y0 + m * (j - b.x0);
+    if (s === g) return at;
+    const mk2 = s + '>' + g;
+    if (!view.mc[mk2]) { const S = o.tfs[s], G = o.tfs[g], jB = S.bars.length - 1;
+      view.mc[mk2] = { jA: posIn(S, G.bars[0][0]), jB, iB: g === 'H4' ? firstOn(G, S.bars[jB][0]) : posIn(G, S.bars[jB][0]) }; }
+    const c = view.mc[mk2]; if (!(c.iB >= 3) || !(c.jB > c.jA)) return null;
+    const yA = at(c.jA), yB = at(c.jB), sl = (yB - yA) / c.iB;
+    return (i) => yA + sl * i;
+  }
+  function pairs(list) { const s = (list || []).slice().sort((a, b) => a.k - b.k), out = [];
+    for (let i = 1; i < s.length; i++) if (s[i].k - s[i - 1].k === 1) out.push([s[i - 1], s[i]]); return out; }
+  // 같은 간격 선이 지금 가격의 6%보다 촘촘하면(바닥에서 몇 배 오른 종목) 그 시간봉의 그 선 묶음은 그리지 않는다.
+  const DENSE = 0.06;
+  function famStep(F, fam) { const p = pairs((F && F[fam]) || []); if (!p.length) return null; const v = fam === 'white' ? (x) => x.y : (x) => x.now;
+    return Math.abs(v(p[0][1]) - v(p[0][0])) / F.bars[F.bars.length - 1][4]; }
+  const famOk = (F, fam) => { const st = famStep(F, fam); return st === null || st >= DENSE; };
+  function denseNote(o, tf) { const out = [];
+    [tf].concat(carryOf(o, tf)).forEach((s) => ['black', 'white'].forEach((fam) => { const st = famStep(o.tfs[s], fam);
+      if (st !== null && st < DENSE && view.layers[fam]) out.push(TFN[s] + ' ' + (fam === 'black' ? '검은' : '흰') + ' 선 ' + (st * 100).toFixed(1) + '%'); }));
+    return out; }
+  // Every level the chart of timeframe tf currently shows, valued at its last bar.
+  function levels(o, tf) {
+    const G = o.tfs[tf]; if (!G) return [];
+    const n = G.bars.length, Lr = view.layers, out = [], nm = TFN[tf];
+    const add = (label, y) => { if (y > 0 && isFinite(y)) out.push({ label, y }); };
+    [tf].concat(carryOf(o, tf)).forEach((s) => { const S = o.tfs[s], sn = TFN[s];
+      if (Lr.black && famOk(S, 'black')) (S.black || []).forEach((b) => { const fn = lineFn(o, s, b, tf); if (fn) add('검은 선 · ' + sn, fn(n - 1)); });
+      if (Lr.white && famOk(S, 'white')) (S.white || []).forEach((w) => add('흰 선 · ' + sn, w.y));
+    });
+    if (Lr.mid) {
+      if (Lr.black && famOk(G, 'black')) pairs(G.black).forEach(([a, b]) => add('검은 중간선 · ' + nm, (lineFn(o, tf, a, tf)(n - 1) + lineFn(o, tf, b, tf)(n - 1)) / 2));
+      if (Lr.white && famOk(G, 'white')) pairs(G.white).forEach(([a, b]) => add('흰 중간선 · ' + nm, (a.y + b.y) / 2));
+    }
+    if (Lr.fib && fibOk(o)) o.fib.levels.forEach((x) => add('피보 ' + x.r, x.y));
+    if (Lr.ext) (G.ext || []).forEach((x) => add('피보 확장 ' + x.r + ' · ' + nm, x.y));
+    if (Lr.box && G.box) { add('변곡 구간 위 · ' + nm, G.box.hi); add('변곡 구간 아래 · ' + nm, G.box.lo); }
+    if (Lr.chan && G.channel) { const c = G.channel; [[0, '하단'], [0.5, '중앙'], [1, '상단']].forEach(([mm, t]) => add('채널엔진 ' + t + ' · ' + nm, Math.exp(c.intercept + c.slope * (n - 1 - c.offset) + mm * c.width))); }
+    const pl = o.plan || {};
+    if (Lr.plan && (pl.status === 'waiting' || pl.status === 'holding') && (tf === 'D' || tf === 'H4')) {
+      add(pl.status === 'waiting' ? '엔진 지정가' : '엔진 체결가', pl.entry); add('엔진 손절', pl.stop);
+      (pl.targets || []).forEach((t, k) => add('엔진 ' + (k + 1) + '차 목표', t));
+    }
+    return out;
+  }
+  // Levels within 0.5% of today's price of each other become one group (a group spans at most 1%).
+  function groups(o, tf) {
+    const P = o.close, tol = 0.005 * P, lv = levels(o, tf).sort((a, b) => a.y - b.y), out = [];
+    lv.forEach((x) => { const g = out[out.length - 1];
+      if (g && x.y - g.items[g.items.length - 1].y <= tol && x.y - g.lo <= 2 * tol) { g.items.push(x); g.hi = x.y; }
+      else out.push({ items: [x], lo: x.y, hi: x.y }); });
+    out.forEach((g) => { g.y = g.items.reduce((s, x) => s + x.y, 0) / g.items.length; g.pct = (g.y / P - 1) * 100; });
+    return out;
+  }
+  // The four nearest groups above and below today's price (what the level list shows and the chart marks).
+  function nearSel(o, tf) {
+    const gs = groups(o, tf);
+    return { above: gs.filter((g) => g.y > o.close).slice(0, 4), below: gs.filter((g) => g.y <= o.close).reverse().slice(0, 4) };
+  }
+  $('qform').addEventListener('submit', (e) => { e.preventDefault(); const t = normalize($('qin').value); if (!t) { status('티커 형식이 아니다. 영문·숫자로 넣어 줘 (예: NVDA, ^NDX, GC=F, 005930).', 'err'); return; } open(t, false, false, !inWatch(t)); });
+  // 관심종목(또는 지수·선물 바로가기)에 있는 티커인지. 없는 티커를 검색하면 계산 작업이 섹터를 정해 관심종목에 넣는다.
+  const inWatch = (t) => !view.wl || (view.wl.fixed || []).some((f) => f.t === t) || (view.wl.sectors || []).some((s) => s.items.some((i) => i.t === t));
+  const sectorOf = (t) => { const s = ((view.wl && view.wl.sectors) || []).find((x) => x.items.some((i) => i.t === t)); return s ? s.name : null; };
+  $('qre').addEventListener('click', () => { if (view.data) open(view.data.t, true); });
+
+  // ---------- data ----------
+  async function boot() {
+    db = await claude.use('db');
+    if (!db) { $('cmsg').textContent = '차트 데이터를 읽지 못했다.'; return; }
+    mcp = await claude.use('mcp');
+    claude.use('downloads').then((d) => { downloads = d; syncSave(); }).catch(() => {});
+    try { const c = await db.doc('config/app').get(); triggerId = c.exists ? c.data().trigger_id : null; } catch (e) {}
+    try { const w = await db.doc('config/watchlist').get(); view.wl = w.exists ? w.data() : null; } catch (e) {}
+    db.doc('config/watchlist').onSnapshot((s) => { if (s.exists) { view.wl = s.data(); renderPicker(); } }, () => {});
+    renderPicker();
+    // chart_index 문서는 계산할 때마다 새 이름(<키>__<시각>)으로 생기고 옛것은 지워진다. 같은 키가 잠깐 둘이면 최신 것을 쓴다.
+    db.collection('chart_index').onSnapshot((snap) => { const ix = {}; snap.docs.forEach((d) => { const r = d.data(); if (r && r.key) ix[r.key] = newer(ix[r.key], r); }); view.index = ix; renderPicker(); }, () => {});
+    open(normalize(new URLSearchParams(location.search).get('t')) || store.get('last', null) || '^NDX', false, true);
+  }
+  const newer = (a, b) => (!a || String(b.updated || '') > String(a.updated || '') ? b : a);
+  // 피보 되돌림은 깊은 눌림 사이클 조건(2년 안 1.5배 등)을 채우고 지금 가격이 사이클 저점 위일 때만 그린다.
+  const fibOk = (o) => !!(o && o.fib && o.fib.ok && o.close >= o.fib.lo);
+  async function findIndex(key, fresh) {
+    if (!fresh && view.index[key]) return view.index[key];
+    try { const q = await db.collection('chart_index').where('key', '==', key).get(); let best = null; q.docs.forEach((d) => { best = newer(best, d.data()); }); return best; }
+    catch (e) { return view.index[key] || null; }
+  }
+  // ---------- 종목 고르기: 지수·선물 고정 칩 / 내 관심종목(섹터 → 종목) ----------
+  function renderPicker() {
+    const cur = view.data && view.data.t, fixed = (view.wl && view.wl.fixed) || FIXED_DEFAULT, secs = (view.wl && view.wl.sectors) || [];
+    const chg = (ix, cls) => ix && ix.chg !== null && ix.chg !== undefined ? mk('span', cls + ' ' + (ix.chg >= 0 ? 'up' : 'dn'), pct(ix.chg)) : null;
+    const F = $('pk-fixed'); F.replaceChildren();
+    fixed.forEach((f) => {
+      const b = mk('button', 'chip', f.label); b.type = 'button'; b.dataset.t = f.t; const ix = view.index[f.key];
+      b.title = f.t + (ix && ix.asof ? ' · ' + ix.asof + ' 종가 ' + fmt(ix.close) : ''); const c = chg(ix, ''); if (c) { const s = mk('small'); s.append(c); b.append(s); }
+      b.addEventListener('click', () => open(f.t, false)); F.appendChild(b);
+    });
+    $('wlCount').textContent = view.wl ? String(view.wl.count || '') : ''; $('tab-watch').hidden = !secs.length;
+    if (!secs.some((s) => s.name === view.sector)) view.sector = secs.length ? secs[0].name : null;
+    const S = $('sectors'); S.replaceChildren();
+    secs.forEach((s) => {
+      const b = mk('button', 'sec', s.name); b.type = 'button'; b.append(mk('span', '', String(s.items.length))); b.setAttribute('aria-pressed', s.name === view.sector ? 'true' : 'false');
+      b.addEventListener('click', () => { view.sector = s.name; store.set('sector', s.name); renderPicker(); }); S.appendChild(b);
+    });
+    const G = $('tgrid'); G.replaceChildren(); const sec = secs.find((s) => s.name === view.sector);
+    (sec ? sec.items : []).forEach((it) => {
+      const ix = view.index[it.key], b = mk('button', 'tk'); b.type = 'button'; b.dataset.t = it.t;
+      b.append(mk('b', '', it.t), chg(ix, 'cg') || mk('span', 'cg none', ix ? '' : '계산 전'), mk('span', 'nm', it.name));
+      b.title = it.name + (ix && ix.asof ? ' · ' + ix.asof + ' 종가 ' + fmt(ix.close) : ' · 아직 계산 전, 누르면 계산');
+      b.addEventListener('click', () => open(it.t, false)); G.appendChild(b);
+    });
+    showTab(view.pk); markPressed();
+    void cur;
+  }
+  function showTab(k) {
+    view.pk = k === 'watch' && view.wl ? 'watch' : 'fixed'; store.set('pk', view.pk);
+    $('tab-fixed').setAttribute('aria-selected', view.pk === 'fixed' ? 'true' : 'false'); $('tab-watch').setAttribute('aria-selected', view.pk === 'watch' ? 'true' : 'false');
+    $('pk-fixed').hidden = view.pk !== 'fixed'; $('pk-watch').hidden = view.pk !== 'watch';
+  }
+  $('tab-fixed').addEventListener('click', () => showTab('fixed'));
+  $('tab-watch').addEventListener('click', () => showTab('watch'));
+  function markPressed() { const cur = view.data && view.data.t; document.querySelectorAll('.picker [data-t]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.t === cur ? 'true' : 'false')); }
+  // 본 종목 기록: 정기 갱신 작업이 최근 7일 안에 본 종목을 매일 다시 계산한다.
+  async function noteView(t, key) {
+    try { const ref = db.doc('requests/' + key), s = await ref.get(), now = new Date().toISOString();
+      if (s.exists) await ref.update({ viewed_at: now }); else await ref.set({ t, viewed_at: now }); } catch (e) {}
+  }
+  async function open(t, force, quiet, addWatch) {
+    const key = keyOf(t); $('qin').value = t; store.set('last', t);
+    const idx = await findIndex(key, false);
+    if (idx && idx.doc) {
+      await load(idx);
+      const ageH = (Date.now() - Date.parse(idx.updated || 0)) / 3.6e6;
+      // 미국 정규장 마감(동부 16:00, 대략 21:00 UTC) 전에 계산한 차트는 마지막 봉이 장중 값이다.
+      const intraday = !/\.KS$|\.KQ$|^\^KS|^\^KQ/.test(idx.t) && Date.parse(idx.updated || 0) < Date.parse(idx.asof + 'T21:00:00Z');
+      if (!force) { status(idx.t + ' · ' + idx.asof + (intraday ? ' 장중 값(마감 전에 계산)' : ' 종가 기준') + (ageH > 30 ? ' · ' + Math.floor(ageH / 24) + '일 전에 계산함(매일 장 마감 뒤 자동 갱신)' : ''), ageH > 30 || intraday ? '' : 'ok'); noteView(t, key); return; }
+    } else if (!force) {
+      view.data = null; $('cmsg').hidden = false; $('cmsg').textContent = t + ' 차트가 아직 없다. 계산을 시작한다.'; clearChart();
+    }
+    request(t, key, addWatch);
+  }
+  async function load(idx) {
+    try {
+      const s = await db.doc('charts/' + idx.doc).get();
+      if (!s.exists) { status('저장된 차트 파일을 찾지 못했다. 새로 받기를 눌러 줘.', 'err'); return; }
+      view.data = s.data(); view.key = idx.key; view.zoom = {}; view.mc = {};
+      if (!view.data.tfs[view.tf]) view.tf = 'D';
+      press($('tfseg'), 'tf', view.tf); syncCy();
+      ['M', 'W', 'D', 'H4'].forEach((tf) => { const b = $('tfseg').querySelector('[data-tf="' + tf + '"]'); b.disabled = !view.data.tfs[tf]; });
+      draw(true); renderPanels(); markPressed(); syncSave();
+    } catch (e) { status('차트를 읽지 못했다: ' + (e.message || e.code), 'err'); }
+  }
+  async function request(t, key, addWatch) {
+    if (!mcp || !triggerId) { status(t + ' 차트는 아직 없다. 이 사이트는 관심종목과 지수·선물만 매일 장 마감 뒤 계산한다. 저장소의 docs/data/watchlist.json 에 종목을 넣으면 다음 계산부터 나온다.', 'err'); $('cmsg').hidden = false; $('cmsg').textContent = t + ' 차트 없음 · 관심종목에 넣으면 다음 날부터 계산된다'; return; }
+    status(t + (addWatch ? ' 관심종목에 추가하고 차트를 계산하는 중 · 섹터를 정해서 넣는다. 보통 1~3분 걸린다.' : ' 계산 중 · 보통 1~3분 걸린다. 창을 닫아도 계산은 계속된다.'), 'busy');
+    const reqAt = new Date().toISOString();
+    try { await db.doc('requests/' + key).set({ t, at: reqAt, status: 'queued', viewed_at: reqAt, add_watch: !!addWatch }); } catch (e) {}
+    try {
+      await mcp.callTool('Claude Code Remote', 'fire_trigger', { trigger_id: triggerId, text: '요청 티커: ' + t });
+    } catch (e) {
+      const c = e && e.code;
+      const msg = c === 'server_not_connected' ? 'claude.ai 설정 → 커넥터에서 Claude Code Remote 를 추가해 줘.'
+        : c === 'needs_reauth' ? 'claude.ai 설정 → 커넥터에서 Claude Code Remote 를 다시 연결해 줘.'
+        : c === 'not_in_manifest' ? '이 페이지의 Claude Code Remote 사용을 허용하지 않아서 시작하지 못했다. 페이지 권한에서 허용할 수 있다.'
+        : c === 'tool_error' ? '계산 작업을 시작하지 못했다: ' + (e.message || '')
+        : '계산 작업을 시작하지 못했다(' + (c || '오류') + '). 잠시 뒤 다시 눌러 줘.';
+      status(msg, 'err'); return;
+    }
+    waitingFor = { key, reqAt };
+    if (unsubIndex) unsubIndex();
+    unsubIndex = db.doc('requests/' + key).onSnapshot(async (s) => {
+      const r = s.exists ? s.data() : null;
+      if (!r || !waitingFor || waitingFor.key !== key) return;
+      if (r.status === 'done' && String(r.done_at || '') >= reqAt) {
+        waitingFor = null; unsubIndex(); unsubIndex = null;
+        const i = await findIndex(key, true);
+        if (i) { await load(i); const sec = sectorOf(t); status(t + ' · ' + i.asof + ' 기준으로 새로 그렸다.' + (sec ? ' 관심종목 · ' + sec + ' 섹터에 있다.' : ''), 'ok'); }
+      } else if (r.status === 'error' && String(r.done_at || '') >= reqAt) {
+        waitingFor = null; unsubIndex(); unsubIndex = null; status(t + ' 계산 실패: ' + (r.message || '이유 모름'), 'err');
+      }
+    }, () => {});
+  }
+
+  // ---------- panels ----------
+  function renderNear() {
+    const o = view.data; if (!o || !o.tfs[view.tf]) return;
+    const cy = carryOf(o, view.tf);
+    $('nearMeta').textContent = o.t + ' · ' + (o.name || '') + ' · ' + o.asof + ' 종가 ' + fmt(o.close) + ' · ' + TFN[view.tf] + ' 차트에 켜 둔 선'
+      + (cy.length ? ' (+' + cy.map((s) => TFN[s]).join('·') + ' 선)' : '');
+    const dn = denseNote(o, view.tf);
+    if (dn.length) $('nearMeta').textContent += ' · 너무 촘촘해서 뺀 선: ' + dn.join(', ') + ' (간격이 지금 가격의 6% 미만)';
+    const L = $('nearList'); L.replaceChildren();
+    const row = (g) => {
+      const lab = mk('span', g.items.length > 1 ? 'ovl' : '');
+      if (g.items.length > 1) { lab.append(mk('span', 'ovp', '겹침 ' + g.items.length), document.createTextNode(g.items.map((x) => x.label + ' ' + fmt(x.y)).join(' + '))); }
+      else lab.textContent = g.items[0].label;
+      L.append(lab, mk('span', 'n', fmt(g.y)), mk('span', 'p ' + (g.pct >= 0 ? 'up' : 'dn'), pct(g.pct)));
+    };
+    const sel = nearSel(o, view.tf), above = sel.above.slice().reverse(), below = sel.below;
+    if (above.length) { const s = mk('div', 'sep'); s.append(mk('span', '', '위 저항'), mk('span', '', '')); L.appendChild(s); above.forEach(row); }
+    const now = mk('div', 'sep'); now.append(mk('span', '', '지금 ' + fmt(o.close)), mk('span', '', '')); L.appendChild(now);
+    if (below.length) below.forEach(row);
+    if (!above.length && !below.length) L.appendChild(mk('span', 'meta', '켜 둔 선이 없다.'));
+  }
+  function renderPanels() {
+    const o = view.data; if (!o) return;
+    renderNear();
+    const S = $('sigList'); S.replaceChildren();
+    const sig = (title, pillText, pillCls, lines) => { const d = mk('div', 'sig'); const h = mk('div', 'h'); h.append(mk('span', '', title), mk('span', 'pill ' + pillCls, pillText)); d.appendChild(h);
+      lines.forEach((ln) => { const p = mk('p'); ln.forEach((part) => { if (typeof part === 'string') p.append(document.createTextNode(part)); else p.append(mk('b', '', part.b)); }); d.appendChild(p); }); S.appendChild(d); };
+    const dp = o.deep || {}, fb = o.fib || {};
+    const dl = [];
+    if (dp.limit) dl.push(['0.618 지정가 ', { b: fmt(dp.limit) }, dp.dist_pct !== undefined ? ' (지금보다 ' + Math.abs(dp.dist_pct).toFixed(1) + '% ' + (dp.dist_pct >= 0 ? '아래)' : '위)') : '', ' · 손절 ', { b: fmt(dp.stop) }, ' · 1차 ', { b: fmt(dp.t1) }]);
+    if (dp.fill) dl.push(['체결 ', { b: fmt(dp.fill) }, ' (' + (dp.entry_date || '') + ') · 손익 ', { b: pct(dp.pnl_pct || 0) }]);
+    if (fb.hi) dl.push(['사이클 고점 ', { b: fmt(fb.hi) }, ' (' + (fb.high_week || '') + ' 주) · 저점 ', { b: fmt(fb.lo) }, ' · ' + (fb.mult || '—') + '배' + (fb.ok ? '' : ' (사이클 조건 미달)') + (fibOk(o) ? '' : ' · 차트에는 안 그림')]);
+    sig('깊은 눌림 (0.618)', dp.text || '—', dp.status === 'holding' || dp.near ? 'go' : dp.status === 'waiting' ? 'wait' : 'off', dl);
+    const pl = o.plan || {}; const pll = [];
+    if (pl.status === 'waiting') pll.push(['지정가 ', { b: fmt(pl.entry) }, ' · 손절 ', { b: fmt(pl.stop) }, ' · 목표 ', { b: (pl.targets || []).map(fmt).join(' / ') }]);
+    if (pl.status === 'holding') pll.push(['체결 ', { b: fmt(pl.entry) }, ' (' + (pl.entry_date || '') + ') · 손익 ', { b: pct(pl.pnl_pct || 0) }, ' · 손절 ', { b: fmt(pl.stop) }]);
+    if (pl.plan_title) pll.push(['엔진 판정 ' + pl.plan_title + (pl.days_left ? ' · 주문 ' + pl.placed + ', ' + pl.days_left + '거래일 남음' : '')]);
+    if (pl.status === 'none' && pl.today_title) pll.push(['오늘 엔진 판정 ' + pl.today_title + ' (주문 조건 미달)']);
+    sig('채널엔진 눌림 지정가 (일봉)', pl.text || '—', pl.status === 'holding' ? 'go' : pl.status === 'waiting' ? 'wait' : 'off', pll);
+    const m = o.mom || {}; const ml = [];
+    if (m.r12_1 !== null && m.r12_1 !== undefined) ml.push(['12-1개월 상승률 ', { b: pct(m.r12_1) }, m.p80 !== undefined && m.p80 !== null ? ' · 미국 1,000종목 기준 상위 20% 선 ' + pct(m.p80) + ', 절반 선 ' + pct(m.p50) : '']);
+    ml.push(['깊은 눌림 스캐너는 상위 절반, 채널엔진 스캐너는 상위 20%만 쓴다. 지수·선물은 참고용.']);
+    sig('1년 상승률', m.band || '—', m.band === '상위 10%' || m.band === '상위 20%' ? 'go' : m.band === '상위 절반' ? 'wait' : 'off', ml);
+  }
+
+  // ---------- chart ----------
+  const svg = d3.select('#chart').append('svg').attr('role', 'img').attr('aria-label', '가격 차트와 자동 선');
+  const defs = svg.append('defs'); const clip = defs.append('clipPath').attr('id', 'plotclip'); const clipRect = clip.append('rect');
+  const gGrid = svg.append('g'), gPlot = svg.append('g').attr('clip-path', 'url(#plotclip)'), gAxis = svg.append('g'), gTags = svg.append('g'), gCross = svg.append('g');
+  const zoomer = d3.zoom().scaleExtent([1, 60]).on('zoom', (ev) => { if (view.data) { view.zoom[view.tf] = ev.transform; schedule(); } });
+  svg.call(zoomer).on('dblclick.zoom', null).on('dblclick', () => { delete view.zoom[view.tf]; draw(true); });
+  let raf = 0; const schedule = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; draw(false); }); };
+  function clearChart() { gGrid.selectAll('*').remove(); gPlot.selectAll('*').remove(); gAxis.selectAll('*').remove(); gTags.selectAll('*').remove(); $('hud').textContent = ''; }
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  window.addEventListener('resize', () => schedule());
+
+  function draw(resetZoom) {
+    const o = view.data; if (!o) return; const f = o.tfs[view.tf]; if (!f) return;
+    $('cmsg').hidden = true;
+    const box = $('chart'); const W = box.clientWidth, H = box.clientHeight, ml = 8, mr = 74, mt = 28, mb = 26;
+    svg.attr('viewBox', `0 0 ${W} ${H}`);
+    clipRect.attr('x', ml).attr('y', mt).attr('width', Math.max(1, W - ml - mr)).attr('height', Math.max(1, H - mt - mb));
+    const bars = f.bars, n = bars.length, fut = f.future || 0;
+    const show = { M: n, W: 260, D: 250, H4: 240 }[view.tf] || n;
+    const right = n - 1 + Math.max(3, Math.round(fut * 0.25));
+    const base = d3.scaleLinear([-1, right], [ml, W - mr]);
+    const k0 = Math.max(1, (right + 1) / (Math.min(show, n) + Math.max(3, Math.round(fut * 0.25))));
+    zoomer.extent([[ml, 0], [W - mr, H]]).translateExtent([[ml - 200, 0], [W - mr + 200, H]]);
+    if (resetZoom || !view.zoom[view.tf]) {
+      const t = d3.zoomIdentity.translate(-(k0 - 1) * (W - mr), 0).scale(k0);
+      view.zoom[view.tf] = t; svg.call(zoomer.transform, t); return; // the zoom event redraws
+    }
+    const x = view.zoom[view.tf].rescaleX(base);
+    const [i0, i1] = x.domain(); const lo = Math.max(0, Math.floor(i0)), hi = Math.min(n - 1, Math.ceil(i1));
+    const vis = bars.slice(lo, hi + 1);
+    if (!vis.length) return;
+    let ymin = d3.min(vis, (b) => b[3]), ymax = d3.max(vis, (b) => b[2]);
+    const padF = view.sc === 'log' ? 1.06 : null;
+    let y;
+    if (view.sc === 'log') { y = d3.scaleLog([ymin / padF, ymax * padF], [H - mb, mt]); }
+    else { const p = (ymax - ymin) * 0.07 || ymax * 0.05; y = d3.scaleLinear([ymin - p, ymax + p], [H - mb, mt]); }
+    const [yd0, yd1] = y.domain();
+    gGrid.selectAll('*').remove(); gPlot.selectAll('*').remove(); gAxis.selectAll('*').remove(); gTags.selectAll('*').remove();
+    const yt = view.sc === 'log' ? y.ticks(6).filter((v, i, a) => a.length < 9 || i % 2 === 0) : y.ticks(7);
+    gGrid.selectAll('line').data(yt).join('line').attr('x1', ml).attr('x2', W - mr).attr('y1', (d) => y(d)).attr('y2', (d) => y(d)).attr('stroke', css('--c-grid'));
+    gAxis.selectAll('text.yt').data(yt).join('text').attr('class', 'yt').attr('x', W - mr + 6).attr('y', (d) => y(d)).attr('dy', '0.35em').attr('font-size', 11)
+      .attr('font-family', css('--f-num')).attr('fill', css('--c-axis')).text((d) => fmt(d).replace(/\.00$/, ''));
+    // x labels
+    const step = Math.max(1, Math.round((hi - lo) / Math.max(2, Math.floor((W - ml - mr) / 90))));
+    const lab = (s) => view.tf === 'M' ? s.slice(0, 4) : view.tf === 'H4' ? s.slice(5, 10) : s.slice(0, 7);
+    const xt = []; for (let i = lo; i <= hi; i += step) xt.push(i);
+    gAxis.selectAll('text.xt').data(xt).join('text').attr('class', 'xt').attr('x', (i) => x(i)).attr('y', H - 8).attr('text-anchor', 'middle').attr('font-size', 11)
+      .attr('font-family', css('--f-num')).attr('fill', css('--c-axis')).text((i) => lab(bars[i][0]));
+    const tags = [], leftLabels = [], drawn = [];
+    // st: { color, width, dash, opacity, tag (default true for hline), tagDash, left (left-edge label), label (hover name) }
+    const hline = (v, st) => {
+      if (!(v > 0) || v < yd0 || v > yd1) return; const yy = y(v);
+      gPlot.append('line').attr('x1', ml).attr('x2', W - mr).attr('y1', yy).attr('y2', yy).attr('stroke', st.color).attr('stroke-width', st.width)
+        .attr('stroke-dasharray', st.dash || null).attr('opacity', st.opacity || 0.95);
+      if (st.left) leftLabels.push({ yy, color: st.color, label: st.left });
+      if (st.tag !== false) tags.push({ v, color: st.color, text: fmt(v), dash: st.tagDash });
+      if (st.label) drawn.push({ label: st.label, fn: () => v });
+    };
+    const poly = (fn, from, to, st) => {
+      const a = Math.max(from, Math.floor(i0) - 1), b = Math.min(to, Math.ceil(i1) + 1); if (b <= a) return;
+      const pts = []; const N = 60; for (let s = 0; s <= N; s++) { const i = a + (b - a) * s / N; const v = fn(i); if (v > 0) pts.push([x(i), y(v)]); }
+      if (pts.length < 2) return;
+      gPlot.append('path').attr('d', d3.line()(pts)).attr('fill', 'none').attr('stroke', st.color).attr('stroke-width', st.width)
+        .attr('stroke-dasharray', st.dash || null).attr('opacity', st.opacity || 1);
+      if (st.tag) { const v = fn(Math.min(n - 1, b)); if (v >= yd0 && v <= yd1) tags.push({ v, color: st.color, text: fmt(v), dash: st.tagDash }); }
+      if (st.label) drawn.push({ label: st.label, fn });
+    };
+    const L = view.layers, nm = TFN[view.tf], cB = css('--c-black'), cW = css('--c-white');
+    // overlap bands at today's bar (under everything else)
+    if (L.ov) {
+      const xa = Math.max(ml, x(n - 1) - 46), xb = W - mr;
+      const sel = nearSel(o, view.tf); let lastLab = -1e9;
+      if (xb - xa > 8) sel.above.concat(sel.below).filter((g) => g.items.length > 1 && g.hi >= yd0 && g.lo <= yd1).sort((a, b) => b.hi - a.hi).forEach((g) => {
+        const top = y(g.hi) - 4, bot = y(g.lo) + 4;
+        gPlot.append('rect').attr('x', xa).attr('y', top).attr('width', xb - xa).attr('height', Math.max(8, bot - top)).attr('rx', 2)
+          .attr('fill', css('--c-ov')).attr('fill-opacity', 0.22).attr('stroke', css('--c-ov')).attr('stroke-opacity', 0.7);
+        if (top - lastLab >= 12) { lastLab = top;
+          gPlot.append('text').attr('x', xb - 4).attr('y', top - 3).attr('text-anchor', 'end').attr('font-size', 10).attr('fill', css('--c-ov')).text('겹침 ' + g.items.length); }
+      });
+    }
+    // lines carried down from higher timeframes (drawn first so this timeframe's own lines sit on top)
+    carryOf(o, view.tf).forEach((s) => {
+      const S = o.tfs[s], step = ORDER.indexOf(view.tf) - ORDER.indexOf(s), sn = TFN[s];
+      const sty = step === 1 ? { width: 2.6, dash: '10 5', opacity: 0.85 } : { width: 3.2, dash: '16 6', opacity: 0.75 };
+      if (L.white && famOk(S, 'white')) (S.white || []).forEach((w) => hline(w.y, { ...sty, color: cW, tagDash: true, label: '흰 선 · ' + sn }));
+      if (L.black && famOk(S, 'black')) (S.black || []).forEach((b) => { const fn = lineFn(o, s, b, view.tf); if (fn) poly(fn, -1, n - 1 + fut, { ...sty, color: cB, tag: true, tagDash: true, label: '검은 선 · ' + sn }); });
+    });
+    if (L.mid) {
+      const mst = { width: 1.1, dash: '3 4', opacity: 0.75, tag: false };
+      if (L.white && famOk(f, 'white')) pairs(f.white).forEach(([a, b]) => hline((a.y + b.y) / 2, { ...mst, color: cW, label: '흰 중간선 · ' + nm }));
+      if (L.black && famOk(f, 'black')) pairs(f.black).forEach(([a, b]) => { const fa = lineFn(o, view.tf, a, view.tf), fb = lineFn(o, view.tf, b, view.tf);
+        poly((i) => (fa(i) + fb(i)) / 2, -1, Math.min(a.x1, b.x1), { ...mst, color: cB, label: '검은 중간선 · ' + nm }); });
+    }
+    if (L.box && f.box) {
+      const bx = f.box, xa = x(bx.x0 - 0.5), xb = x(bx.x1 + 0.5);
+      gPlot.append('rect').attr('x', Math.min(xa, xb)).attr('y', y(bx.hi)).attr('width', Math.abs(xb - xa)).attr('height', Math.max(1, y(bx.lo) - y(bx.hi)))
+        .attr('fill', css('--c-box')).attr('fill-opacity', 0.16).attr('stroke', css('--c-box')).attr('stroke-width', 1.2);
+      [bx.hi, bx.lo].forEach((v) => { if (v >= yd0 && v <= yd1) gPlot.append('line').attr('x1', xb).attr('x2', W - mr).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', css('--c-box')).attr('stroke-dasharray', '3 4').attr('opacity', 0.7); });
+      if (bx.x1 >= i0 && bx.x0 <= i1) gPlot.append('text').attr('x', Math.min(xa, xb) + 4).attr('y', y(bx.lo) + 14).attr('font-size', 11).attr('fill', css('--c-box')).text('변곡 구간');
+    }
+    if (L.white && famOk(f, 'white')) (f.white || []).forEach((w) => hline(w.y, { color: cW, width: 1.6, label: '흰 선 · ' + nm }));
+    if (L.black && famOk(f, 'black')) (f.black || []).forEach((b) => poly(lineFn(o, view.tf, b, view.tf), -1, b.x1, { color: cB, width: 1.8, tag: true, label: '검은 선 · ' + nm }));
+    if (L.fib && fibOk(o)) o.fib.levels.forEach((lv) => hline(lv.y, { color: css('--c-fib'), width: 1, dash: lv.r === 0.618 ? null : '1 0', left: lv.r + ' (' + fmt(lv.y) + ')', label: '피보 ' + lv.r }));
+    if (L.ext) (f.ext || []).forEach((e) => hline(e.y, { color: css('--c-ext'), width: 1.2, dash: '6 4', left: '확장 ' + e.r + ' (' + fmt(e.y) + ')', label: '피보 확장 ' + e.r + ' · ' + nm }));
+    if (L.chan && f.channel) { const c = f.channel, cn = { '-1': '아래 확장', 0: '하단', 0.5: '중앙', 1: '상단', 2: '위 확장' };
+      [-1, 0, 0.5, 1, 2].forEach((m) => poly((i) => Math.exp(c.intercept + c.slope * (i - c.offset) + m * c.width), c.offset, n - 1 + fut,
+        { color: css('--c-chan'), width: m === 0.5 ? 1 : 1.5, dash: m === 0.5 ? '4 4' : (m === -1 || m === 2) ? '2 3' : null, tag: m === 0 || m === 1, label: '채널엔진 ' + cn[m] + ' · ' + nm })); }
+    if (L.plan && o.plan && (o.plan.status === 'waiting' || o.plan.status === 'holding') && (view.tf === 'D' || view.tf === 'H4')) {
+      const en = o.plan.status === 'waiting' ? '엔진 지정가' : '엔진 체결가';
+      hline(o.plan.entry, { color: css('--c-entry'), width: 1.4, left: en + ' ' + fmt(o.plan.entry), label: en });
+      hline(o.plan.stop, { color: css('--c-stop'), width: 1.2, dash: '5 3', left: '엔진 손절 ' + fmt(o.plan.stop), label: '엔진 손절' });
+      (o.plan.targets || []).forEach((t, k) => hline(t, { color: css('--c-tgt'), width: 1.1, dash: '5 3', left: (k + 1) + '차 목표 ' + fmt(t), label: '엔진 ' + (k + 1) + '차 목표' }));
+    }
+    leftLabels.sort((a, b) => a.yy - b.yy); let lastY = -1e9;
+    leftLabels.forEach((l) => { if (l.yy - lastY < 13) return; lastY = l.yy;
+      gPlot.append('text').attr('x', ml + 6).attr('y', l.yy - 4).attr('font-size', 11).attr('font-family', css('--f-num')).attr('fill', l.color).text(l.label); });
+    // candles
+    const bw = Math.max(1, Math.min(14, (x(1) - x(0)) * 0.7));
+    const cg = gPlot.append('g');
+    vis.forEach((b, j) => {
+      const i = lo + j, up = b[4] >= b[1], col = up ? css('--c-up') : css('--c-down'), cx = x(i);
+      cg.append('line').attr('x1', cx).attr('x2', cx).attr('y1', y(b[2])).attr('y2', y(b[3])).attr('stroke', col).attr('stroke-width', 1);
+      const yo = y(b[1]), yc = y(b[4]);
+      cg.append('rect').attr('x', cx - bw / 2).attr('y', Math.min(yo, yc)).attr('width', bw).attr('height', Math.max(1, Math.abs(yc - yo))).attr('fill', col);
+    });
+    // last price tag + line tags (nearest to price, no overlaps)
+    const last = bars[n - 1], lastUp = last[4] >= bars[Math.max(0, n - 2)][4];
+    const tagList = tags.filter((t) => t.v >= yd0 && t.v <= yd1).sort((a, b) => Math.abs(a.v - last[4]) - Math.abs(b.v - last[4])).slice(0, 9);
+    tagList.push({ v: last[4], color: lastUp ? css('--c-up') : css('--c-down'), text: fmt(last[4]), main: true });
+    tagList.sort((a, b) => y(a.v) - y(b.v));
+    // 태그는 선 색으로 채우고 글자는 배경에 따라 검정/흰색(폰 브라우저에서도 읽히게). 점선 테두리 = 큰 봉에서 가져온 선.
+    const rgb = (c) => { const m = /^#?([0-9a-f]{6})$/i.exec(String(c).trim()); if (!m) return null; const v = parseInt(m[1], 16); return [(v >> 16) & 255, (v >> 8) & 255, v & 255]; };
+    const lightFill = (c) => { const r = rgb(c); return !!r && (0.2126 * r[0] + 0.7152 * r[1] + 0.0722 * r[2]) / 255 > 0.55; };
+    let prev = -1e9; const placed = tagList.map((t) => { let yy = y(t.v); if (yy - prev < 18) yy = prev + 18; prev = yy; return { ...t, yy }; });
+    placed.forEach((t) => {
+      const g = gTags.append('g'), fg = t.main ? '#ffffff' : lightFill(t.color) ? '#111214' : '#ffffff';
+      g.append('rect').attr('x', W - mr + 2).attr('y', t.yy - 9).attr('width', mr - 4).attr('height', 18).attr('rx', 3).attr('fill', t.color)
+        .attr('stroke', t.dash ? '#c9ccd1' : 'rgba(0,0,0,0.35)').attr('stroke-width', t.dash ? 1.2 : 1).attr('stroke-dasharray', t.dash ? '3 2' : null);
+      g.append('text').attr('x', W - mr + 6).attr('y', t.yy).attr('dy', '0.35em').attr('font-size', 11.5).attr('font-weight', 600).attr('font-family', css('--f-num'))
+        .attr('fill', fg).text(t.text);
+    });
+    hud(last, n - 1);
+    // crosshair
+    gCross.selectAll('*').remove();
+    const vl = gCross.append('line').attr('y1', mt).attr('y2', H - mb).attr('stroke', css('--c-axis')).attr('stroke-dasharray', '3 3').attr('opacity', 0);
+    const hl = gCross.append('line').attr('x1', ml).attr('x2', W - mr).attr('stroke', css('--c-axis')).attr('stroke-dasharray', '3 3').attr('opacity', 0);
+    svg.on('pointermove.cross', (ev) => {
+      const [px, py] = d3.pointer(ev, svg.node()); const i = Math.round(x.invert(px));
+      if (i < 0 || i >= n || px > W - mr || py < mt || py > H - mb) { vl.attr('opacity', 0); hl.attr('opacity', 0); hud(last, n - 1); return; }
+      let best = null;
+      drawn.forEach((d) => { const v = d.fn(i); if (!(v > 0)) return; const dp = Math.abs(y(v) - py); if (dp < 7 && (!best || dp < best.dp)) best = { dp, label: d.label, v }; });
+      vl.attr('x1', x(i)).attr('x2', x(i)).attr('opacity', 0.6); hl.attr('y1', py).attr('y2', py).attr('opacity', 0.6); hud(bars[i], i, y.invert(py), best);
+    }).on('pointerleave.cross', () => { vl.attr('opacity', 0); hl.attr('opacity', 0); hud(last, n - 1); });
+  }
+  function hud(b, i, py, near) {
+    const o = view.data;
+    const el = $('hud'); el.replaceChildren(mk('b', '', o.t + ' · ' + TFN[view.tf]));
+    el.append(document.createTextNode(b[0] + '  시 ' + fmt(b[1]) + '  고 ' + fmt(b[2]) + '  저 ' + fmt(b[3]) + '  종 ' + fmt(b[4]) + (py ? '  · 커서 ' + fmt(py) : '')));
+    if (near) { const s = mk('span', '', '  · ' + near.label + ' ' + fmt(near.v)); s.style.color = '#ffd166'; el.append(s); }
+  }
+
+  // ---------- 차트만 PNG 로 저장 ----------
+  // 지금 화면의 차트 SVG(켜 둔 선·확대 범위 그대로)를 복제해 제목 줄을 넣고 2배 해상도 PNG 로 만든다.
+  function syncSave() { $('csave').hidden = !(downloads && view.data); }
+  async function saveChart() {
+    const o = view.data; if (!o || !downloads) return;
+    const node = svg.node(), box = $('chart'), W = box.clientWidth, H = box.clientHeight, S = 2;
+    const cl = node.cloneNode(true);
+    cl.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); cl.setAttribute('width', W); cl.setAttribute('height', H);
+    if (cl.lastChild) cl.removeChild(cl.lastChild); // 마지막 묶음 = 십자선(gCross), 그림에서 뺀다
+    const NS = 'http://www.w3.org/2000/svg';
+    const bg = document.createElementNS(NS, 'rect'); bg.setAttribute('width', W); bg.setAttribute('height', H); bg.setAttribute('fill', css('--c-bg'));
+    cl.insertBefore(bg, cl.firstChild.nextSibling);
+    const tt = document.createElementNS(NS, 'text'); tt.setAttribute('x', 12); tt.setAttribute('y', 19); tt.setAttribute('font-size', 13);
+    tt.setAttribute('font-family', 'Apple SD Gothic Neo, Malgun Gothic, Noto Sans KR, sans-serif'); tt.setAttribute('fill', '#ffffff'); tt.setAttribute('font-weight', 600);
+    const sc = view.sc === 'log' ? ' · 로그' : '';
+    tt.textContent = o.t + (o.name ? ' ' + o.name : '') + ' · ' + TFN[view.tf] + sc + ' · ' + o.asof + ' 종가 ' + fmt(o.close);
+    cl.appendChild(tt);
+    $('csave').disabled = true; status('차트 그림을 만드는 중', 'busy');
+    try {
+      const src = new XMLSerializer().serializeToString(cl);
+      const url = URL.createObjectURL(new Blob([src], { type: 'image/svg+xml;charset=utf-8' }));
+      const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('그림 변환 실패')); im.src = url; });
+      const cv = document.createElement('canvas'); cv.width = W * S; cv.height = H * S;
+      const cx = cv.getContext('2d'); cx.scale(S, S); cx.drawImage(img, 0, 0, W, H); URL.revokeObjectURL(url);
+      const png = await new Promise((res, rej) => cv.toBlob((b) => (b ? res(b) : rej(new Error('PNG 변환 실패'))), 'image/png'));
+      const fn = (o.t.replace(/[^A-Za-z0-9.\-]/g, '_') + '_' + TFN[view.tf] + '_' + o.asof + '.png');
+      await downloads.save({ filename: fn, data: png });
+      status(fn + ' 저장했다.', 'ok');
+    } catch (e) {
+      const c = e && e.code;
+      if (c === 'declined') status('저장을 취소했다.', '');
+      else if (c === 'rate_limited') status('저장 창이 이미 떠 있다. 잠시 뒤 다시 눌러 줘.', 'err');
+      else if (c === 'unavailable' || c === 'not_granted' || c === 'capability_disabled' || c === 'capability_removed') { downloads = null; syncSave(); status('이 화면에서는 파일 저장을 쓸 수 없다.', 'err'); }
+      else status('차트를 저장하지 못했다: ' + ((e && e.message) || c || '오류'), 'err');
+    } finally { $('csave').disabled = false; }
+  }
+  $('csave').addEventListener('click', saveChart);
+
+  boot();
+})();
+</script>
+
+</body>
+</html>

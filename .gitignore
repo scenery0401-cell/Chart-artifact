@@ -1,0 +1,4 @@
+# 계산 결과는 gh-pages 가지에만 올린다
+docs/data/*
+!docs/data/watchlist.json
+__pycache__/

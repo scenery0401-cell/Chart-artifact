@@ -1,0 +1,1288 @@
+{
+ "count": 228,
+ "fixed": [
+  {
+   "key": "NQ@F",
+   "label": "나스닥 선물",
+   "t": "NQ=F"
+  },
+  {
+   "key": "ES@F",
+   "label": "S&P 선물",
+   "t": "ES=F"
+  },
+  {
+   "key": "~NDX",
+   "label": "나스닥100",
+   "t": "^NDX"
+  },
+  {
+   "key": "SOXX",
+   "label": "SOXX 반도체",
+   "t": "SOXX"
+  },
+  {
+   "key": "GC@F",
+   "label": "금 선물",
+   "t": "GC=F"
+  },
+  {
+   "key": "~KS11",
+   "label": "코스피",
+   "t": "^KS11"
+  }
+ ],
+ "note": "INVERT 관심종목 백업 기준. 섹터는 증권사 관심그룹 기준으로 나눔.",
+ "sectors": [
+  {
+   "count": 12,
+   "items": [
+    {
+     "key": "AIP",
+     "name": "Arteris, Inc.",
+     "t": "AIP"
+    },
+    {
+     "key": "AOSL",
+     "name": "Alpha and Omega Semiconductor Limited",
+     "t": "AOSL"
+    },
+    {
+     "key": "AMD",
+     "name": "Advanced Micro Devices, Inc.",
+     "t": "AMD"
+    },
+    {
+     "key": "INTC",
+     "name": "Intel Corporation",
+     "t": "INTC"
+    },
+    {
+     "key": "ARM",
+     "name": "Arm Holdings plc",
+     "t": "ARM"
+    },
+    {
+     "key": "STM",
+     "name": "STMicroelectronics N.V.",
+     "t": "STM"
+    },
+    {
+     "key": "TXN",
+     "name": "Texas Instruments Incorporated",
+     "t": "TXN"
+    },
+    {
+     "key": "VSH",
+     "name": "Vishay Intertechnology, Inc.",
+     "t": "VSH"
+    },
+    {
+     "key": "VPG",
+     "name": "Vishay Precision Group, Inc.",
+     "t": "VPG"
+    },
+    {
+     "key": "SOXL",
+     "name": "Direxion Daily Semiconductor Bull 3X Shares",
+     "t": "SOXL"
+    },
+    {
+     "key": "AVGO",
+     "name": "Broadcom Inc.",
+     "t": "AVGO"
+    },
+    {
+     "key": "LSCC",
+     "name": "Lattice Semiconductor Corporation",
+     "t": "LSCC"
+    }
+   ],
+   "name": "반도체"
+  },
+  {
+   "items": [
+    {
+     "key": "AEHR",
+     "name": "Aehr Test Systems, Inc.",
+     "t": "AEHR"
+    },
+    {
+     "key": "ASML",
+     "name": "ASML Holding N.V.",
+     "t": "ASML"
+    },
+    {
+     "key": "TER",
+     "name": "Teradyne, Inc.",
+     "t": "TER"
+    },
+    {
+     "key": "ACMR",
+     "name": "ACM Research, Inc.",
+     "t": "ACMR"
+    },
+    {
+     "key": "TSEM",
+     "name": "Tower Semiconductor Ltd.",
+     "t": "TSEM"
+    },
+    {
+     "key": "COHU",
+     "name": "Cohu, Inc.",
+     "t": "COHU"
+    },
+    {
+     "key": "STX",
+     "name": "Seagate Technology Holdings plc",
+     "t": "STX"
+    },
+    {
+     "key": "KLIC",
+     "name": "Kulicke and Soffa Industries, Inc.",
+     "t": "KLIC"
+    },
+    {
+     "key": "FORM",
+     "name": "FormFactor, Inc.",
+     "t": "FORM"
+    },
+    {
+     "key": "TRT",
+     "name": "Trio-Tech International",
+     "t": "TRT"
+    },
+    {
+     "key": "WDC",
+     "name": "Western Digital Corporation",
+     "t": "WDC"
+    },
+    {
+     "key": "AMAT",
+     "name": "Applied Materials, Inc.",
+     "t": "AMAT"
+    },
+    {
+     "key": "LRCX",
+     "name": "Lam Research Corporation",
+     "t": "LRCX"
+    },
+    {
+     "key": "KLAC",
+     "name": "KLA Corporation",
+     "t": "KLAC"
+    }
+   ],
+   "name": "반도체 장비"
+  },
+  {
+   "items": [
+    {
+     "key": "MU",
+     "name": "Micron Technology, Inc.",
+     "t": "MU"
+    },
+    {
+     "key": "SNDK",
+     "name": "Sandisk Corporation",
+     "t": "SNDK"
+    },
+    {
+     "key": "SIMO",
+     "name": "Silicon Motion Technology Corporation",
+     "t": "SIMO"
+    },
+    {
+     "key": "DRAM",
+     "name": "Roundhill Memory ETF",
+     "t": "DRAM"
+    },
+    {
+     "key": "SNDU",
+     "name": "T-REX 2X Long SNDK Daily Target ETF",
+     "t": "SNDU"
+    },
+    {
+     "key": "SNXX",
+     "name": "Tradr 2X Long Sndk Daily ETF",
+     "t": "SNXX"
+    },
+    {
+     "key": "RAM",
+     "name": "Roundhill T-REX 2x Long DRAM Daily Target ETF",
+     "t": "RAM"
+    },
+    {
+     "key": "KORU",
+     "name": "Direxion Daily South Korea Bull 3X Shares",
+     "t": "KORU"
+    },
+    {
+     "key": "005930.KS",
+     "name": "Samsung Electronics Co., Ltd.",
+     "t": "005930.KS"
+    },
+    {
+     "key": "000660.KS",
+     "name": "SK hynix Inc.",
+     "t": "000660.KS"
+    },
+    {
+     "key": "0193T0.KS",
+     "name": "Samsung Kodex Sk Hynix Single Stock Leverage",
+     "t": "0193T0.KS"
+    }
+   ],
+   "name": "메모리"
+  },
+  {
+   "items": [
+    {
+     "key": "APH",
+     "name": "Amphenol Corporation",
+     "t": "APH"
+    },
+    {
+     "key": "SMTC",
+     "name": "Semtech Corporation",
+     "t": "SMTC"
+    },
+    {
+     "key": "FN",
+     "name": "Fabrinet",
+     "t": "FN"
+    },
+    {
+     "key": "AEVA",
+     "name": "Aeva Technologies, Inc.",
+     "t": "AEVA"
+    },
+    {
+     "key": "ANET",
+     "name": "Arista Networks, Inc.",
+     "t": "ANET"
+    },
+    {
+     "key": "CLS",
+     "name": "Celestica Inc.",
+     "t": "CLS"
+    },
+    {
+     "key": "VIAV",
+     "name": "Viavi Solutions Inc.",
+     "t": "VIAV"
+    },
+    {
+     "key": "CIEN",
+     "name": "Ciena Corporation",
+     "t": "CIEN"
+    },
+    {
+     "key": "NOK",
+     "name": "Nokia Oyj",
+     "t": "NOK"
+    },
+    {
+     "key": "MRVL",
+     "name": "Marvell Technology, Inc.",
+     "t": "MRVL"
+    },
+    {
+     "key": "AAOI",
+     "name": "Applied Optoelectronics, Inc.",
+     "t": "AAOI"
+    },
+    {
+     "key": "LITE",
+     "name": "Lumentum Holdings Inc.",
+     "t": "LITE"
+    },
+    {
+     "key": "COHR",
+     "name": "Coherent Corp.",
+     "t": "COHR"
+    },
+    {
+     "key": "CRDO",
+     "name": "Credo Technology Group Holding Ltd",
+     "t": "CRDO"
+    },
+    {
+     "key": "AXTI",
+     "name": "AXT, Inc.",
+     "t": "AXTI"
+    },
+    {
+     "key": "VICR",
+     "name": "Vicor Corporation",
+     "t": "VICR"
+    },
+    {
+     "key": "GLW",
+     "name": "Corning Incorporated",
+     "t": "GLW"
+    },
+    {
+     "key": "MXL",
+     "name": "MaxLinear, Inc.",
+     "t": "MXL"
+    },
+    {
+     "key": "ALAB",
+     "name": "Astera Labs, Inc.",
+     "t": "ALAB"
+    }
+   ],
+   "name": "광학"
+  },
+  {
+   "items": [
+    {
+     "key": "DELL",
+     "name": "Dell Technologies Inc.",
+     "t": "DELL"
+    },
+    {
+     "key": "HPE",
+     "name": "Hewlett Packard Enterprise Company",
+     "t": "HPE"
+    },
+    {
+     "key": "SMCI",
+     "name": "Super Micro Computer, Inc.",
+     "t": "SMCI"
+    },
+    {
+     "key": "CDW",
+     "name": "CDW Corporation",
+     "t": "CDW"
+    },
+    {
+     "key": "NTNX",
+     "name": "Nutanix, Inc.",
+     "t": "NTNX"
+    },
+    {
+     "key": "AKAM",
+     "name": "Akamai Technologies, Inc.",
+     "t": "AKAM"
+    },
+    {
+     "key": "NTAP",
+     "name": "NetApp, Inc.",
+     "t": "NTAP"
+    },
+    {
+     "key": "FFIV",
+     "name": "F5, Inc.",
+     "t": "FFIV"
+    },
+    {
+     "key": "FLEX",
+     "name": "Flex Ltd.",
+     "t": "FLEX"
+    },
+    {
+     "key": "JBL",
+     "name": "Jabil Inc.",
+     "t": "JBL"
+    }
+   ],
+   "name": "AI인프라"
+  },
+  {
+   "count": 23,
+   "items": [
+    {
+     "key": "FLNC",
+     "name": "Fluence Energy, Inc.",
+     "t": "FLNC"
+    },
+    {
+     "key": "BE",
+     "name": "Bloom Energy Corporation",
+     "t": "BE"
+    },
+    {
+     "key": "PWR",
+     "name": "Quanta Services, Inc.",
+     "t": "PWR"
+    },
+    {
+     "key": "ETN",
+     "name": "Eaton Corporation plc",
+     "t": "ETN"
+    },
+    {
+     "key": "DPC",
+     "name": "DPC Holdings PLC",
+     "t": "DPC"
+    },
+    {
+     "key": "EROC",
+     "name": "ERock, Inc.",
+     "t": "EROC"
+    },
+    {
+     "key": "IPWR",
+     "name": "Ideal Power Inc.",
+     "t": "IPWR"
+    },
+    {
+     "key": "HYLN",
+     "name": "Hyliion Holdings Corp.",
+     "t": "HYLN"
+    },
+    {
+     "key": "AAON",
+     "name": "AAON, Inc.",
+     "t": "AAON"
+    },
+    {
+     "key": "POWL",
+     "name": "Powell Industries, Inc.",
+     "t": "POWL"
+    },
+    {
+     "key": "RFIL",
+     "name": "RF Industries, Ltd.",
+     "t": "RFIL"
+    },
+    {
+     "key": "ATEX",
+     "name": "Anterix Inc.",
+     "t": "ATEX"
+    },
+    {
+     "key": "PLPC",
+     "name": "Preformed Line Products Company",
+     "t": "PLPC"
+    },
+    {
+     "key": "CBRS",
+     "name": "Cerebras Systems Inc.",
+     "t": "CBRS"
+    },
+    {
+     "key": "VST",
+     "name": "Vistra Corp.",
+     "t": "VST"
+    },
+    {
+     "key": "WOLF",
+     "name": "Wolfspeed, Inc.",
+     "t": "WOLF"
+    },
+    {
+     "key": "FPS",
+     "name": "Forgent Power Solutions, Inc.",
+     "t": "FPS"
+    },
+    {
+     "key": "FCEL",
+     "name": "FuelCell Energy, Inc.",
+     "t": "FCEL"
+    },
+    {
+     "key": "VRT",
+     "name": "Vertiv Holdings Co",
+     "t": "VRT"
+    },
+    {
+     "key": "NVTS",
+     "name": "Navitas Semiconductor Corporation",
+     "t": "NVTS"
+    },
+    {
+     "key": "GEV",
+     "name": "GE Vernova Inc.",
+     "t": "GEV"
+    },
+    {
+     "key": "TT",
+     "name": "Trane Technologies plc",
+     "t": "TT"
+    },
+    {
+     "key": "GNRC",
+     "name": "Generac Holdings Inc.",
+     "t": "GNRC"
+    }
+   ],
+   "name": "전력"
+  },
+  {
+   "items": [
+    {
+     "key": "CIFR",
+     "name": "Cipher Digital Inc.",
+     "t": "CIFR"
+    },
+    {
+     "key": "BRUN",
+     "name": "Boost Run, Inc.",
+     "t": "BRUN"
+    },
+    {
+     "key": "BW",
+     "name": "Babcock & Wilcox Enterprises, Inc.",
+     "t": "BW"
+    },
+    {
+     "key": "FRMI",
+     "name": "Fermi Inc.",
+     "t": "FRMI"
+    },
+    {
+     "key": "IREN",
+     "name": "IREN Limited",
+     "t": "IREN"
+    },
+    {
+     "key": "APLD",
+     "name": "Applied Digital Corporation",
+     "t": "APLD"
+    },
+    {
+     "key": "CRWV",
+     "name": "CoreWeave, Inc.",
+     "t": "CRWV"
+    },
+    {
+     "key": "SHAZ",
+     "name": "SharonAI Holdings Inc.",
+     "t": "SHAZ"
+    },
+    {
+     "key": "DGXX",
+     "name": "Digi Power X Inc.",
+     "t": "DGXX"
+    },
+    {
+     "key": "NBIS",
+     "name": "Nebius Group N.V.",
+     "t": "NBIS"
+    }
+   ],
+   "name": "데센"
+  },
+  {
+   "items": [
+    {
+     "key": "AAPL",
+     "name": "Apple Inc.",
+     "t": "AAPL"
+    },
+    {
+     "key": "MSFT",
+     "name": "Microsoft Corporation",
+     "t": "MSFT"
+    },
+    {
+     "key": "GOOGL",
+     "name": "Alphabet Inc.",
+     "t": "GOOGL"
+    },
+    {
+     "key": "AMZN",
+     "name": "Amazon.com, Inc.",
+     "t": "AMZN"
+    },
+    {
+     "key": "META",
+     "name": "Meta Platforms, Inc.",
+     "t": "META"
+    },
+    {
+     "key": "NVDA",
+     "name": "NVIDIA Corporation",
+     "t": "NVDA"
+    },
+    {
+     "key": "TSLA",
+     "name": "Tesla, Inc.",
+     "t": "TSLA"
+    }
+   ],
+   "name": "M7"
+  },
+  {
+   "items": [
+    {
+     "key": "TWLO",
+     "name": "Twilio Inc.",
+     "t": "TWLO"
+    },
+    {
+     "key": "S",
+     "name": "SentinelOne, Inc.",
+     "t": "S"
+    },
+    {
+     "key": "VRNS",
+     "name": "Varonis Systems, Inc.",
+     "t": "VRNS"
+    },
+    {
+     "key": "ZS",
+     "name": "Zscaler, Inc.",
+     "t": "ZS"
+    },
+    {
+     "key": "BB",
+     "name": "BlackBerry Limited",
+     "t": "BB"
+    },
+    {
+     "key": "P",
+     "name": "Everpure, Inc.",
+     "t": "P"
+    },
+    {
+     "key": "GTLB",
+     "name": "GitLab Inc.",
+     "t": "GTLB"
+    },
+    {
+     "key": "ADSK",
+     "name": "Autodesk, Inc.",
+     "t": "ADSK"
+    },
+    {
+     "key": "OKTA",
+     "name": "Okta, Inc.",
+     "t": "OKTA"
+    },
+    {
+     "key": "VEEV",
+     "name": "Veeva Systems Inc.",
+     "t": "VEEV"
+    },
+    {
+     "key": "RDDT",
+     "name": "Reddit, Inc.",
+     "t": "RDDT"
+    },
+    {
+     "key": "WDAY",
+     "name": "Workday, Inc.",
+     "t": "WDAY"
+    },
+    {
+     "key": "TEAM",
+     "name": "Atlassian Corporation",
+     "t": "TEAM"
+    },
+    {
+     "key": "DOCS",
+     "name": "Doximity, Inc.",
+     "t": "DOCS"
+    },
+    {
+     "key": "NET",
+     "name": "Cloudflare, Inc.",
+     "t": "NET"
+    },
+    {
+     "key": "APP",
+     "name": "AppLovin Corporation",
+     "t": "APP"
+    },
+    {
+     "key": "ORCL",
+     "name": "Oracle Corporation",
+     "t": "ORCL"
+    },
+    {
+     "key": "APPS",
+     "name": "Digital Turbine, Inc.",
+     "t": "APPS"
+    },
+    {
+     "key": "INOD",
+     "name": "Innodata Inc.",
+     "t": "INOD"
+    },
+    {
+     "key": "SNAP",
+     "name": "Snap Inc.",
+     "t": "SNAP"
+    },
+    {
+     "key": "FTNT",
+     "name": "Fortinet, Inc.",
+     "t": "FTNT"
+    },
+    {
+     "key": "FIG",
+     "name": "Figma, Inc.",
+     "t": "FIG"
+    },
+    {
+     "key": "U",
+     "name": "Unity Software Inc.",
+     "t": "U"
+    },
+    {
+     "key": "PLTR",
+     "name": "Palantir Technologies Inc.",
+     "t": "PLTR"
+    },
+    {
+     "key": "IBM",
+     "name": "International Business Machines Corporation",
+     "t": "IBM"
+    },
+    {
+     "key": "ATEN",
+     "name": "A10 Networks, Inc.",
+     "t": "ATEN"
+    },
+    {
+     "key": "CRM",
+     "name": "Salesforce, Inc.",
+     "t": "CRM"
+    },
+    {
+     "key": "PANW",
+     "name": "Palo Alto Networks, Inc.",
+     "t": "PANW"
+    },
+    {
+     "key": "RBRK",
+     "name": "Rubrik, Inc.",
+     "t": "RBRK"
+    },
+    {
+     "key": "CRWD",
+     "name": "CrowdStrike Holdings, Inc.",
+     "t": "CRWD"
+    },
+    {
+     "key": "DDOG",
+     "name": "Datadog, Inc.",
+     "t": "DDOG"
+    },
+    {
+     "key": "SNOW",
+     "name": "Snowflake Inc.",
+     "t": "SNOW"
+    },
+    {
+     "key": "NOW",
+     "name": "ServiceNow, Inc.",
+     "t": "NOW"
+    },
+    {
+     "key": "PAYC",
+     "name": "Paycom Software, Inc.",
+     "t": "PAYC"
+    }
+   ],
+   "name": "솦웨"
+  },
+  {
+   "items": [
+    {
+     "key": "MSTR",
+     "name": "Strategy Inc",
+     "t": "MSTR"
+    },
+    {
+     "key": "BMNR",
+     "name": "Bitmine Immersion Technologies, Inc.",
+     "t": "BMNR"
+    },
+    {
+     "key": "BULL",
+     "name": "Webull Corporation",
+     "t": "BULL"
+    },
+    {
+     "key": "HOOD",
+     "name": "Robinhood Markets, Inc.",
+     "t": "HOOD"
+    },
+    {
+     "key": "CRCL",
+     "name": "Circle Internet Group",
+     "t": "CRCL"
+    },
+    {
+     "key": "COIN",
+     "name": "Coinbase Global, Inc.",
+     "t": "COIN"
+    },
+    {
+     "key": "VIRT",
+     "name": "Virtu Financial, Inc.",
+     "t": "VIRT"
+    },
+    {
+     "key": "NU",
+     "name": "Nu Holdings Ltd.",
+     "t": "NU"
+    },
+    {
+     "key": "SOFI",
+     "name": "SoFi Technologies, Inc.",
+     "t": "SOFI"
+    },
+    {
+     "key": "AFRM",
+     "name": "Affirm Holdings, Inc.",
+     "t": "AFRM"
+    },
+    {
+     "key": "KKR",
+     "name": "KKR & Co. Inc.",
+     "t": "KKR"
+    },
+    {
+     "key": "CPAY",
+     "name": "Corpay, Inc.",
+     "t": "CPAY"
+    },
+    {
+     "key": "TRV",
+     "name": "The Travelers Companies, Inc.",
+     "t": "TRV"
+    }
+   ],
+   "name": "금융"
+  },
+  {
+   "items": [
+    {
+     "key": "LUNR",
+     "name": "Intuitive Machines, Inc.",
+     "t": "LUNR"
+    },
+    {
+     "key": "VELO",
+     "name": "Velo3D, Inc.",
+     "t": "VELO"
+    },
+    {
+     "key": "FLY",
+     "name": "Firefly Aerospace Inc.",
+     "t": "FLY"
+    },
+    {
+     "key": "SPCX",
+     "name": "Space Exploration Technologies Corp.",
+     "t": "SPCX"
+    },
+    {
+     "key": "RDW",
+     "name": "Redwire Corporation",
+     "t": "RDW"
+    },
+    {
+     "key": "PL",
+     "name": "Planet Labs PBC",
+     "t": "PL"
+    },
+    {
+     "key": "ASTS",
+     "name": "AST SpaceMobile, Inc.",
+     "t": "ASTS"
+    },
+    {
+     "key": "RKLB",
+     "name": "Rocket Lab Corporation",
+     "t": "RKLB"
+    }
+   ],
+   "name": "우주"
+  },
+  {
+   "items": [
+    {
+     "key": "LMT",
+     "name": "Lockheed Martin Corporation",
+     "t": "LMT"
+    },
+    {
+     "key": "KTOS",
+     "name": "Kratos Defense & Security Solutions, Inc.",
+     "t": "KTOS"
+    },
+    {
+     "key": "RCAT",
+     "name": "Red Cat Holdings, Inc.",
+     "t": "RCAT"
+    },
+    {
+     "key": "UMAC",
+     "name": "Unusual Machines, Inc.",
+     "t": "UMAC"
+    },
+    {
+     "key": "AVEX",
+     "name": "AEVEX Corp.",
+     "t": "AVEX"
+    },
+    {
+     "key": "AVAV",
+     "name": "AeroVironment, Inc.",
+     "t": "AVAV"
+    }
+   ],
+   "name": "드론·방산"
+  },
+  {
+   "items": [
+    {
+     "key": "LLY",
+     "name": "Eli Lilly and Company",
+     "t": "LLY"
+    },
+    {
+     "key": "UNH",
+     "name": "UnitedHealth Group Incorporated",
+     "t": "UNH"
+    },
+    {
+     "key": "OSCR",
+     "name": "Oscar Health, Inc.",
+     "t": "OSCR"
+    },
+    {
+     "key": "TEM",
+     "name": "Tempus AI, Inc.",
+     "t": "TEM"
+    },
+    {
+     "key": "TDOC",
+     "name": "Teladoc Health, Inc.",
+     "t": "TDOC"
+    },
+    {
+     "key": "HIMS",
+     "name": "Hims & Hers Health, Inc.",
+     "t": "HIMS"
+    },
+    {
+     "key": "GRAL",
+     "name": "GRAIL, Inc.",
+     "t": "GRAL"
+    },
+    {
+     "key": "NTRA",
+     "name": "Natera, Inc.",
+     "t": "NTRA"
+    },
+    {
+     "key": "DNA",
+     "name": "Ginkgo Bioworks Holdings, Inc.",
+     "t": "DNA"
+    },
+    {
+     "key": "ARKG",
+     "name": "ARK Genomic Revolution ETF",
+     "t": "ARKG"
+    },
+    {
+     "key": "CRSP",
+     "name": "CRISPR Therapeutics AG",
+     "t": "CRSP"
+    },
+    {
+     "key": "TWST",
+     "name": "Twist Bioscience Corporation",
+     "t": "TWST"
+    },
+    {
+     "key": "ILMN",
+     "name": "Illumina, Inc.",
+     "t": "ILMN"
+    },
+    {
+     "key": "CRL",
+     "name": "Charles River Laboratories International, Inc.",
+     "t": "CRL"
+    },
+    {
+     "key": "RVTY",
+     "name": "Revvity, Inc.",
+     "t": "RVTY"
+    },
+    {
+     "key": "CNC",
+     "name": "Centene Corporation",
+     "t": "CNC"
+    },
+    {
+     "key": "MRK",
+     "name": "Merck & Co., Inc.",
+     "t": "MRK"
+    },
+    {
+     "key": "WST",
+     "name": "West Pharmaceutical Services, Inc.",
+     "t": "WST"
+    },
+    {
+     "key": "VTRS",
+     "name": "Viatris Inc.",
+     "t": "VTRS"
+    },
+    {
+     "key": "DXCM",
+     "name": "DexCom, Inc.",
+     "t": "DXCM"
+    },
+    {
+     "key": "PODD",
+     "name": "Insulet Corporation",
+     "t": "PODD"
+    }
+   ],
+   "name": "헬스케어"
+  },
+  {
+   "items": [
+    {
+     "key": "MRNA",
+     "name": "Moderna, Inc.",
+     "t": "MRNA"
+    },
+    {
+     "key": "BIIB",
+     "name": "Biogen Inc.",
+     "t": "BIIB"
+    },
+    {
+     "key": "AMGN",
+     "name": "Amgen Inc.",
+     "t": "AMGN"
+    }
+   ],
+   "name": "바이오"
+  },
+  {
+   "items": [
+    {
+     "key": "MPC",
+     "name": "Marathon Petroleum Corporation",
+     "t": "MPC"
+    },
+    {
+     "key": "VLO",
+     "name": "Valero Energy Corporation",
+     "t": "VLO"
+    },
+    {
+     "key": "PSX",
+     "name": "Phillips 66",
+     "t": "PSX"
+    },
+    {
+     "key": "APA",
+     "name": "APA Corporation",
+     "t": "APA"
+    },
+    {
+     "key": "TRGP",
+     "name": "Targa Resources Corp.",
+     "t": "TRGP"
+    },
+    {
+     "key": "EQT",
+     "name": "EQT Corporation",
+     "t": "EQT"
+    },
+    {
+     "key": "FRO",
+     "name": "Frontline plc",
+     "t": "FRO"
+    },
+    {
+     "key": "STNG",
+     "name": "Scorpio Tankers Inc.",
+     "t": "STNG"
+    }
+   ],
+   "name": "에너지"
+  },
+  {
+   "items": [
+    {
+     "key": "FCX",
+     "name": "Freeport-McMoRan Inc.",
+     "t": "FCX"
+    },
+    {
+     "key": "NEM",
+     "name": "Newmont Corporation",
+     "t": "NEM"
+    },
+    {
+     "key": "MP",
+     "name": "MP Materials Corp.",
+     "t": "MP"
+    },
+    {
+     "key": "AA",
+     "name": "Alcoa Corporation",
+     "t": "AA"
+    },
+    {
+     "key": "NUE",
+     "name": "Nucor Corporation",
+     "t": "NUE"
+    }
+   ],
+   "name": "원자재"
+  },
+  {
+   "items": [
+    {
+     "key": "SHOP",
+     "name": "Shopify Inc.",
+     "t": "SHOP"
+    },
+    {
+     "key": "NFLX",
+     "name": "Netflix, Inc.",
+     "t": "NFLX"
+    },
+    {
+     "key": "SPOT",
+     "name": "Spotify Technology S.A.",
+     "t": "SPOT"
+    },
+    {
+     "key": "PINS",
+     "name": "Pinterest, Inc.",
+     "t": "PINS"
+    },
+    {
+     "key": "UBER",
+     "name": "UBER",
+     "t": "UBER"
+    },
+    {
+     "key": "MELI",
+     "name": "MercadoLibre, Inc.",
+     "t": "MELI"
+    },
+    {
+     "key": "SE",
+     "name": "Sea Limited",
+     "t": "SE"
+    },
+    {
+     "key": "CVNA",
+     "name": "Carvana Co.",
+     "t": "CVNA"
+    },
+    {
+     "key": "DKNG",
+     "name": "DraftKings Inc.",
+     "t": "DKNG"
+    },
+    {
+     "key": "UAL",
+     "name": "United Airlines Holdings, Inc.",
+     "t": "UAL"
+    },
+    {
+     "key": "DAL",
+     "name": "Delta Air Lines, Inc.",
+     "t": "DAL"
+    },
+    {
+     "key": "RCL",
+     "name": "Royal Caribbean Cruises Ltd.",
+     "t": "RCL"
+    },
+    {
+     "key": "CCL",
+     "name": "Carnival Corporation Ltd.",
+     "t": "CCL"
+    },
+    {
+     "key": "ONON",
+     "name": "On Holding AG",
+     "t": "ONON"
+    },
+    {
+     "key": "CELH",
+     "name": "Celsius Holdings, Inc.",
+     "t": "CELH"
+    },
+    {
+     "key": "TGT",
+     "name": "Target Corporation",
+     "t": "TGT"
+    },
+    {
+     "key": "GM",
+     "name": "General Motors Company",
+     "t": "GM"
+    },
+    {
+     "key": "RIVN",
+     "name": "Rivian Automotive, Inc.",
+     "t": "RIVN"
+    }
+   ],
+   "name": "소비·여행"
+  },
+  {
+   "items": [
+    {
+     "key": "URI",
+     "name": "United Rentals, Inc.",
+     "t": "URI"
+    },
+    {
+     "key": "ODFL",
+     "name": "Old Dominion Freight Line, Inc.",
+     "t": "ODFL"
+    },
+    {
+     "key": "AXON",
+     "name": "Axon Enterprise, Inc.",
+     "t": "AXON"
+    },
+    {
+     "key": "EXPD",
+     "name": "Expeditors International of Washington, Inc.",
+     "t": "EXPD"
+    },
+    {
+     "key": "DHI",
+     "name": "D.R. Horton, Inc.",
+     "t": "DHI"
+    },
+    {
+     "key": "LEN",
+     "name": "Lennar Corporation",
+     "t": "LEN"
+    },
+    {
+     "key": "CAT",
+     "name": "Caterpillar Inc.",
+     "t": "CAT"
+    }
+   ],
+   "name": "산업·주택"
+  },
+  {
+   "items": [
+    {
+     "key": "QQQ",
+     "name": "Invesco QQQ Trust",
+     "t": "QQQ"
+    }
+   ],
+   "name": "지수·ETF"
+  }
+ ],
+ "source": "INVERT_WATCHLIST_V1",
+ "source_updated": "2026-11-06T17:12:17.172Z",
+ "updated": "2026-11-08T19:00:10Z"
+}

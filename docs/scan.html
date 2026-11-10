@@ -58,7 +58,7 @@
   'use strict';
   nav('scan.html');
   const st = { deep: [], pb: [], turn: [], wl: new Set(), top: true, ai: false, wlOnly: false };
-  const link = (t) => { const a = mk('a', 'tk', t); a.href = st.wl.has(t) ? 'chart.html?t=' + encodeURIComponent(t) : 'https://finance.yahoo.com/quote/' + encodeURIComponent(t); if (!st.wl.has(t)) { a.target = '_blank'; a.rel = 'noopener'; } const c = mk('td'); c.appendChild(a); return c; };
+  const link = (t) => { const a = mk('a', 'tk', t); a.href = 'chart.html?t=' + encodeURIComponent(t) + '&add=1'; a.title = 'INVERT 자동 선 차트 열기 · 데이터가 없으면 계산 요청'; const c = mk('td'); c.appendChild(a); return c; };
   const pc = (x) => (x === null || x === undefined ? '—' : (x > 0 ? '+' : '') + Number(x).toFixed(1) + '%');
   const empty = (B, n, text) => { const tr = mk('tr'); const c = td(text, 'w'); c.colSpan = n; tr.appendChild(c); B.appendChild(tr); };
   function deepState(r) {

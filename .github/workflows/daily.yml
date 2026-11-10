@@ -1,0 +1,40 @@
+name: daily
+on:
+  schedule:
+    - cron: '10 22 * * 1-5'   # 평일 22:10 UTC = 한국 다음 날 07:10 (미국 장 마감 1~2시간 뒤)
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: daily
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: pip install numpy pandas
+      - name: 어제 데이터 가져오기(계산이 일부 실패해도 어제 것이 남게)
+        run: |
+          if git fetch origin gh-pages --depth=1 2>/dev/null; then
+            git archive FETCH_HEAD data | tar -x -C docs --skip-old-files || true
+          fi
+      - name: 계산
+        id: calc
+        run: bash pipeline/run_daily.sh
+        continue-on-error: true
+      - name: 사이트 올리기(gh-pages 가지, 기록 없이 덮어쓰기)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          force_orphan: true
+          commit_message: 'site'
+      - name: 실패 표시
+        if: steps.calc.outcome == 'failure'
+        run: exit 1

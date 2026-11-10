@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - swing-lab-site.zip
+      - .github/workflows/import-swing-lab.yml
   workflow_dispatch:
 
 permissions:
@@ -30,7 +31,8 @@ jobs:
           import shutil, stat, zipfile
           archive = Path("swing-lab-site.zip")
           if not archive.is_file():
-              raise SystemExit("Upload swing-lab-site.zip to the repository root first.")
+              print("ZIP absent; import already completed or nothing to do.")
+              raise SystemExit(0)
           with zipfile.ZipFile(archive) as z:
               files = [i for i in z.infolist() if not i.is_dir()]
               if not files or sum(i.file_size for i in files) > 20_000_000:
@@ -72,5 +74,6 @@ jobs:
             echo "Nothing to commit"
           else
             git commit -m "Import swing-lab site source files"
+            git pull --rebase origin main
             git push origin HEAD:main
           fi

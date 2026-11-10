@@ -3,6 +3,8 @@ on:
   push:
     paths:
       - 'docs/chart.html'
+      - 'scripts/test-sector-grouping.cjs'
+      - 'docs/data/watchlist.json'
       - 'docs/scan.html'
       - 'docs/index.html'
       - 'pipeline/request_chart.py'
@@ -57,3 +59,5 @@ jobs:
                   subprocess.run(['node', '--check', str(f)], check=True)
           print('Verified', len(scripts), 'inline scripts')
           PY
+      - name: Test sector tab merge against source
+        run: node scripts/test-sector-grouping.cjs

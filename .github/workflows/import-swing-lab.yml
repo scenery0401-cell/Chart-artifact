@@ -1,0 +1,76 @@
+name: Import swing-lab-site ZIP
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - swing-lab-site.zip
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: swing-lab-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Validate and unpack uploaded ZIP
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path, PurePosixPath
+          import shutil, stat, zipfile
+          archive = Path("swing-lab-site.zip")
+          if not archive.is_file():
+              raise SystemExit("Upload swing-lab-site.zip to the repository root first.")
+          with zipfile.ZipFile(archive) as z:
+              files = [i for i in z.infolist() if not i.is_dir()]
+              if not files or sum(i.file_size for i in files) > 20_000_000:
+                  raise SystemExit("Invalid or oversized ZIP")
+              paths = {i.filename for i in files}
+              required = {
+                  "site/README.md",
+                  "site/.github/workflows/daily.yml",
+                  "site/pipeline/run_daily.sh",
+                  "site/docs/index.html",
+              }
+              if not required.issubset(paths):
+                  raise SystemExit("Expected swing-lab site structure was not found")
+              for item in files:
+                  raw = item.filename
+                  parts = PurePosixPath(raw).parts
+                  if (not raw.startswith("site/") or
+                      len(parts) < 2 or
+                      any(part in ("", ".", "..") for part in parts) or
+                      "\\" in raw or
+                      (item.external_attr >> 16) & 0o170000 == stat.S_IFLNK):
+                      raise SystemExit("Unsafe ZIP path: " + raw)
+                  dest = Path(*parts[1:])
+                  if dest.as_posix() == ".github/workflows/import-swing-lab.yml":
+                      raise SystemExit("ZIP must not replace the import workflow")
+                  dest.parent.mkdir(parents=True, exist_ok=True)
+                  with z.open(item) as src, dest.open("wb") as dst:
+                      shutil.copyfileobj(src, dst)
+          print("Successfully unpacked", len(files), "files")
+          PY
+
+      - name: Commit extracted files to main
+        run: |
+          rm -f swing-lab-site.zip
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+          else
+            git commit -m "Import swing-lab site source files"
+            git push origin HEAD:main
+          fi

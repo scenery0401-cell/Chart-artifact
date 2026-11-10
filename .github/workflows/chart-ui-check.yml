@@ -1,0 +1,51 @@
+name: Chart page validation
+on:
+  push:
+    paths:
+      - 'docs/chart.html'
+      - '.github/workflows/chart-ui-check.yml'
+  workflow_dispatch: {}
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax check inline JS and ticker watchlist controls
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          import subprocess, tempfile
+          class Scripts(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.active = False
+                  self.parts = []
+                  self.scripts = []
+              def handle_starttag(self, tag, attrs):
+                  if tag == 'script':
+                      self.active = True
+                      self.parts = []
+              def handle_data(self, data):
+                  if self.active:
+                      self.parts.append(data)
+              def handle_endtag(self, tag):
+                  if tag == 'script' and self.active:
+                      self.scripts.append(''.join(self.parts))
+                      self.active = False
+          html = Path('docs/chart.html').read_text(encoding='utf-8')
+          for marker in ['id="tvfallback"', "function renderFallback(t)", "function addLocalWatch(t)", "view.custom.unshift(t)", "store.set('watchTickers', view.custom)", "fav-remove"]:
+              assert marker in html, marker
+          p = Scripts()
+          p.feed(html)
+          scripts = [s for s in p.scripts if s.strip()]
+          assert len(scripts) >= 2, "Expected inline scripts not present"
+          with tempfile.TemporaryDirectory() as d:
+              for i, js in enumerate(scripts):
+                  f = Path(d) / f'inline-{i}.js'
+                  f.write_text(js, encoding='utf-8')
+                  subprocess.run(['node', '--check', str(f)], check=True)
+          print('Verified', len(scripts), 'inline scripts')
+          PY

@@ -1,0 +1,101 @@
+name: Generate INVERT chart from owner request
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      ticker:
+        description: "Ticker to calculate (e.g. OXY)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: site-data-publish
+  cancel-in-progress: false
+
+jobs:
+  chart-request:
+    # Public Issues cannot trigger arbitrary code. Only the repository owner
+    # may request a chart; untrusted issue text never becomes shell code.
+    if: >-
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event.issue.user.login == github.repository_owner && startsWith(github.event.issue.title, 'CHART: '))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install chart dependencies
+        run: python -m pip install --disable-pip-version-check numpy pandas
+      - name: Validate and extract ticker
+        env:
+          ACTION_EVENT: ${{ github.event_name }}
+          DISPATCH_TICKER: ${{ inputs.ticker }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, re
+          event = os.environ['ACTION_EVENT']
+          if event == 'issues':
+              info = json.loads(pathlib.Path(os.environ['GITHUB_EVENT_PATH']).read_text())
+              title = info['issue']['title']
+              ticker = title.removeprefix('CHART: ').strip().upper()
+          else:
+              ticker = os.environ['DISPATCH_TICKER'].strip().upper()
+          if not re.fullmatch(r'[A-Z0-9^=.\-]{1,15}', ticker):
+              raise SystemExit('Invalid ticker format; use CHART: OXY')
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write('REQUEST_TICKER=' + ticker + '\n')
+          print('Validated ticker:', ticker)
+          PY
+      - name: Recover previously calculated charts and results
+        run: |
+          mkdir -p docs/data
+          if git fetch origin gh-pages --depth=1 2>/dev/null; then
+            git archive FETCH_HEAD data | tar -x -C docs --skip-old-files || true
+          fi
+      - name: Generate INVERT chart and classify sector
+        run: python3 -I pipeline/request_chart.py --ticker "$REQUEST_TICKER" --out docs/data
+      - name: Persist ticker to source watchlist
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/data/watchlist.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Watchlist: add and classify ${REQUEST_TICKER}"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - name: Publish updated chart and watchlist
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          force_orphan: true
+          commit_message: "chart: ${REQUEST_TICKER}"
+      - name: Comment on completed request
+        if: success() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ github.event.issue.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          gh issue comment "$ISSUE" --repo "$REPOSITORY" --body "✅ ${REQUEST_TICKER} INVERT chart generated and published. Open: https://scenery0401-cell.github.io/Chart-artifact/chart.html?t=${REQUEST_TICKER} (refresh if Pages is deploying). Sector and source are recorded in the workflow log."
+      - name: Comment on failed request
+        if: failure() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ github.event.issue.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          gh issue comment "$ISSUE" --repo "$REPOSITORY" --body "⚠️ ${REQUEST_TICKER:-Requested ticker} chart generation did not finish. Check Actions logs; unavailable price data or API limits can cause failure. No chart data should be treated as newly calculated."

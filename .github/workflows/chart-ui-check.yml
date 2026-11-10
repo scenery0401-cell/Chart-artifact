@@ -3,6 +3,10 @@ on:
   push:
     paths:
       - 'docs/chart.html'
+      - 'docs/scan.html'
+      - 'docs/index.html'
+      - 'pipeline/request_chart.py'
+      - '.github/workflows/request-chart.yml'
       - '.github/workflows/chart-ui-check.yml'
   workflow_dispatch: {}
 permissions:
@@ -35,8 +39,12 @@ jobs:
                   if tag == 'script' and self.active:
                       self.scripts.append(''.join(self.parts))
                       self.active = False
+          import py_compile
+          py_compile.compile('pipeline/request_chart.py', doraise=True)
+          for page in ('docs/index.html','docs/scan.html'):
+              assert 'finance.yahoo.com/quote/' not in Path(page).read_text(encoding='utf-8'), page
           html = Path('docs/chart.html').read_text(encoding='utf-8')
-          for marker in ['id="tvfallback"', "function renderFallback(t)", "function addLocalWatch(t)", "view.custom.unshift(t)", "store.set('watchTickers', view.custom)", "fav-remove"]:
+          for marker in ['id="tvfallback"', "function renderFallback(t)", "function addLocalWatch(t)", "view.custom.unshift(t)", "store.set('watchTickers', view.custom)", "fav-remove", "id=\"calc-request\"", "issues/new?title=", "customSector(t)"]:
               assert marker in html, marker
           p = Scripts()
           p.feed(html)

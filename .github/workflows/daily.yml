@@ -6,7 +6,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: daily
+  group: site-data-publish
   cancel-in-progress: false
 jobs:
   run:

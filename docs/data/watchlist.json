@@ -1244,24 +1244,14 @@
     {
       "items": [
         {
-          "key": "URI",
-          "name": "United Rentals, Inc.",
-          "t": "URI"
-        },
-        {
-          "key": "ODFL",
-          "name": "Old Dominion Freight Line, Inc.",
-          "t": "ODFL"
-        },
-        {
           "key": "AXON",
           "name": "Axon Enterprise, Inc.",
           "t": "AXON"
         },
         {
-          "key": "EXPD",
-          "name": "Expeditors International of Washington, Inc.",
-          "t": "EXPD"
+          "key": "CAT",
+          "name": "Caterpillar Inc.",
+          "t": "CAT"
         },
         {
           "key": "DHI",
@@ -1269,14 +1259,29 @@
           "t": "DHI"
         },
         {
+          "key": "EXPD",
+          "name": "Expeditors International of Washington, Inc.",
+          "t": "EXPD"
+        },
+        {
           "key": "LEN",
           "name": "Lennar Corporation",
           "t": "LEN"
         },
         {
-          "key": "CAT",
-          "name": "Caterpillar Inc.",
-          "t": "CAT"
+          "key": "ODFL",
+          "name": "Old Dominion Freight Line, Inc.",
+          "t": "ODFL"
+        },
+        {
+          "t": "UHAL",
+          "key": "UHAL",
+          "name": "U-Haul Holding Company"
+        },
+        {
+          "key": "URI",
+          "name": "United Rentals, Inc.",
+          "t": "URI"
         }
       ],
       "name": "산업·주택"
@@ -1290,16 +1295,6 @@
         }
       ],
       "name": "지수·ETF"
-    },
-    {
-      "name": "경기소비재",
-      "items": [
-        {
-          "t": "UHAL",
-          "key": "UHAL",
-          "name": "U-Haul Holding Company"
-        }
-      ]
     }
   ],
   "source": "INVERT_WATCHLIST_V1",

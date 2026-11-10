@@ -112,7 +112,7 @@
     const ids = st.pk === 'watch' ? st.d.watch_picks : st.d.picks, G = $('picks'); G.replaceChildren();
     if (!ids.length) { G.appendChild(mk('p', 'note', '조건에 맞는 종목이 없다.')); return; }
     ids.forEach((t, i) => { const r = st.by[t]; if (!r) return;
-      const a = mk('a', 'pick'); a.href = r.watch ? 'chart.html?t=' + encodeURIComponent(t) : 'https://finance.yahoo.com/quote/' + encodeURIComponent(t); if (!r.watch) { a.target = '_blank'; a.rel = 'noopener'; }
+      const a = mk('a', 'pick'); a.href = 'chart.html?t=' + encodeURIComponent(t) + '&add=1';
       const h = mk('div', 'h'); h.append(mk('b', '', (i + 1) + '. ' + t), mk('span', 'num ' + sgn(r.chg), PX(r.px) + ' ' + P1(r.chg)));
       const pp = mk('div', 'pp'); const g = mk('div', 'g', '20일 안 +10%'); g.prepend(mk('b', '', P0(r.big))); const b = mk('div', 'r', '20일 안 −10%'); b.prepend(mk('b', '', P0(r.bad))); pp.append(g, b);
       const chips = mk('div', 'bar'); chips.appendChild(mk('span', 'chip', r.grp)); setup(r).forEach((s) => chips.appendChild(mk('span', 'chip ok', s)));
@@ -131,7 +131,7 @@
     let rows = st.d.stocks.filter((r) => (q ? r.t.startsWith(q) : (st.tb === 'all' || r.watch) && (!st.grp || r.grp === st.grp)));
     const k = st.sort === 'big' ? 'sb' : st.sort === 'bad' ? 'sd' : st.sort; rows.sort((a, b) => (k === 't' ? a.t.localeCompare(b.t) * -st.dir : ((a[k] ?? -9) - (b[k] ?? -9)) * st.dir));
     rows.slice(0, 400).forEach((r) => { const tr = mk('tr');
-      const c0 = mk('td'); const a = mk('a', 'tk', r.t); a.href = r.watch ? 'chart.html?t=' + encodeURIComponent(r.t) : 'https://finance.yahoo.com/quote/' + encodeURIComponent(r.t); if (!r.watch) { a.target = '_blank'; a.rel = 'noopener'; } a.title = r.name; c0.appendChild(a);
+      const c0 = mk('td'); const a = mk('a', 'tk', r.t); a.href = 'chart.html?t=' + encodeURIComponent(r.t) + '&add=1'; a.title = r.name; c0.appendChild(a);
       const cb = mk('td', 'n'); cb.append(meter(r.big, 0.5), document.createTextNode(P0(r.big)));
       const cd = mk('td', 'n'); cd.append(meter(r.bad, 0.5, 'b'), document.createTextNode(P0(r.bad)));
       const cs = mk('td'); const su = setup(r); if (su.length) su.forEach((s) => cs.appendChild(mk('span', 'chip ok', s))); else cs.appendChild(mk('span', 'mut', '—'));

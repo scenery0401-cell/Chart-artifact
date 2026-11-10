@@ -1,5 +1,5 @@
 {
-  "count": 232,
+  "count": 233,
   "fixed": [
     {
       "key": "NQ@F",
@@ -934,79 +934,9 @@
     {
       "items": [
         {
-          "key": "LLY",
-          "name": "Eli Lilly and Company",
-          "t": "LLY"
-        },
-        {
-          "key": "UNH",
-          "name": "UnitedHealth Group Incorporated",
-          "t": "UNH"
-        },
-        {
-          "key": "OSCR",
-          "name": "Oscar Health, Inc.",
-          "t": "OSCR"
-        },
-        {
-          "key": "TEM",
-          "name": "Tempus AI, Inc.",
-          "t": "TEM"
-        },
-        {
-          "key": "TDOC",
-          "name": "Teladoc Health, Inc.",
-          "t": "TDOC"
-        },
-        {
-          "key": "HIMS",
-          "name": "Hims & Hers Health, Inc.",
-          "t": "HIMS"
-        },
-        {
-          "key": "GRAL",
-          "name": "GRAIL, Inc.",
-          "t": "GRAL"
-        },
-        {
-          "key": "NTRA",
-          "name": "Natera, Inc.",
-          "t": "NTRA"
-        },
-        {
-          "key": "DNA",
-          "name": "Ginkgo Bioworks Holdings, Inc.",
-          "t": "DNA"
-        },
-        {
           "key": "ARKG",
           "name": "ARK Genomic Revolution ETF",
           "t": "ARKG"
-        },
-        {
-          "key": "CRSP",
-          "name": "CRISPR Therapeutics AG",
-          "t": "CRSP"
-        },
-        {
-          "key": "TWST",
-          "name": "Twist Bioscience Corporation",
-          "t": "TWST"
-        },
-        {
-          "key": "ILMN",
-          "name": "Illumina, Inc.",
-          "t": "ILMN"
-        },
-        {
-          "key": "CRL",
-          "name": "Charles River Laboratories International, Inc.",
-          "t": "CRL"
-        },
-        {
-          "key": "RVTY",
-          "name": "Revvity, Inc.",
-          "t": "RVTY"
         },
         {
           "key": "CNC",
@@ -1014,19 +944,19 @@
           "t": "CNC"
         },
         {
-          "key": "MRK",
-          "name": "Merck & Co., Inc.",
-          "t": "MRK"
+          "key": "CRL",
+          "name": "Charles River Laboratories International, Inc.",
+          "t": "CRL"
         },
         {
-          "key": "WST",
-          "name": "West Pharmaceutical Services, Inc.",
-          "t": "WST"
+          "key": "CRSP",
+          "name": "CRISPR Therapeutics AG",
+          "t": "CRSP"
         },
         {
-          "key": "VTRS",
-          "name": "Viatris Inc.",
-          "t": "VTRS"
+          "key": "DNA",
+          "name": "Ginkgo Bioworks Holdings, Inc.",
+          "t": "DNA"
         },
         {
           "key": "DXCM",
@@ -1034,9 +964,84 @@
           "t": "DXCM"
         },
         {
+          "key": "GRAL",
+          "name": "GRAIL, Inc.",
+          "t": "GRAL"
+        },
+        {
+          "key": "HIMS",
+          "name": "Hims & Hers Health, Inc.",
+          "t": "HIMS"
+        },
+        {
+          "key": "ILMN",
+          "name": "Illumina, Inc.",
+          "t": "ILMN"
+        },
+        {
+          "t": "ISRG",
+          "key": "ISRG",
+          "name": "Intuitive Surgical, Inc."
+        },
+        {
+          "key": "LLY",
+          "name": "Eli Lilly and Company",
+          "t": "LLY"
+        },
+        {
+          "key": "MRK",
+          "name": "Merck & Co., Inc.",
+          "t": "MRK"
+        },
+        {
+          "key": "NTRA",
+          "name": "Natera, Inc.",
+          "t": "NTRA"
+        },
+        {
+          "key": "OSCR",
+          "name": "Oscar Health, Inc.",
+          "t": "OSCR"
+        },
+        {
           "key": "PODD",
           "name": "Insulet Corporation",
           "t": "PODD"
+        },
+        {
+          "key": "RVTY",
+          "name": "Revvity, Inc.",
+          "t": "RVTY"
+        },
+        {
+          "key": "TDOC",
+          "name": "Teladoc Health, Inc.",
+          "t": "TDOC"
+        },
+        {
+          "key": "TEM",
+          "name": "Tempus AI, Inc.",
+          "t": "TEM"
+        },
+        {
+          "key": "TWST",
+          "name": "Twist Bioscience Corporation",
+          "t": "TWST"
+        },
+        {
+          "key": "UNH",
+          "name": "UnitedHealth Group Incorporated",
+          "t": "UNH"
+        },
+        {
+          "key": "VTRS",
+          "name": "Viatris Inc.",
+          "t": "VTRS"
+        },
+        {
+          "key": "WST",
+          "name": "West Pharmaceutical Services, Inc.",
+          "t": "WST"
         }
       ],
       "name": "헬스케어"
@@ -1299,5 +1304,5 @@
   ],
   "source": "INVERT_WATCHLIST_V1",
   "source_updated": "2026-11-06T17:12:17.172Z",
-  "updated": "2026-11-10T13:46:28Z"
+  "updated": "2026-11-10T13:49:03Z"
 }

@@ -69,3 +69,12 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .err { background: var(--bad-bg); color: var(--bad); border-radius: 8px; padding: 10px 14px; font-size: .88rem; }
 ul.plain { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 4px; font-size: .86rem; }
 footer { color: var(--muted); font-size: .8rem; }
+
+/* 데이터 새로고침 / 재계산 안내: 오늘·스캔·검증 공통 내비게이션 */
+.sitenav .navtools { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.sitenav .navwhen { color: var(--muted); font-size: .75rem; }
+.sitenav .navrefresh { font: inherit; font-size: .82rem; cursor: pointer; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.sitenav .navrefresh:hover { border-color: var(--accent); }
+.sitenav .navrefresh:disabled { opacity: .6; cursor: default; }
+.sitenav a.navmanual { font-size: .82rem; color: var(--accent); border: 1px solid var(--line); border-radius: 6px; }
+@media (max-width: 640px) { .sitenav .navtools { margin-left: 0; width: 100%; } }

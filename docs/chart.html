@@ -112,14 +112,50 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 #watchNotice a{color:var(--accent)}
 </style>
 
-<style>.sitenav{display:flex;gap:4px;flex-wrap:wrap;max-width:78rem;margin:0 auto;padding:12px 16px 0}.sitenav a{font-size:.9rem;padding:6px 12px;border-radius:6px;color:var(--muted);text-decoration:none}.sitenav a[aria-current=page]{background:var(--ink);color:var(--panel)}.sitenav a:hover{color:var(--ink)}.sitenav a[aria-current=page]:hover{color:var(--panel)}</style>
+<style>.sitenav{display:flex;gap:4px;flex-wrap:wrap;max-width:78rem;margin:0 auto;padding:12px 16px 0}.sitenav a{font-size:.9rem;padding:6px 12px;border-radius:6px;color:var(--muted);text-decoration:none}.sitenav a[aria-current=page]{background:var(--ink);color:var(--panel)}.sitenav a:hover{color:var(--ink)}.sitenav a[aria-current=page]:hover{color:var(--panel)}
+.sitenav .navtools{margin-left:auto;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.sitenav .navwhen{font-size:.75rem;color:var(--muted)}
+.sitenav .navrefresh{font:inherit;font-size:.82rem;cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:6px 10px;background:var(--panel);color:var(--ink)}
+.sitenav .navrefresh:hover{border-color:var(--accent)}
+.sitenav .navrefresh:disabled{opacity:.6;cursor:default}
+.sitenav a.navmanual{font-size:.82rem;color:var(--accent);border:1px solid var(--line);border-radius:6px}
+@media (max-width:640px){.sitenav .navtools{margin-left:0;width:100%}}
+</style>
 </head>
 <body>
-<nav class="sitenav" aria-label="사이트"><a href="index.html">오늘</a><a href="chart.html" aria-current="page">차트</a><a href="scan.html">스캔</a><a href="about.html">검증·한계</a></nav>
+<nav class="sitenav" aria-label="사이트"><a href="index.html">오늘</a><a href="chart.html" aria-current="page">차트</a><a href="scan.html">스캔</a><a href="about.html">검증·한계</a><div class="navtools">
+  <span class="navwhen" id="site-lastcalc" aria-live="polite">계산 기록 확인 중</span>
+  <button class="navrefresh" type="button" id="site-refresh" title="배포된 최신 파일을 다시 읽습니다. GitHub 분석을 새로 실행하지는 않습니다.">↻ 데이터 새로고침</button>
+  <a class="navmanual" href="https://github.com/scenery0401-cell/Chart-artifact/actions/workflows/daily.yml" target="_blank" rel="noopener noreferrer" title="GitHub 로그인 후 Run workflow로 새 분석 실행">재계산 실행</a>
+</div></nav>
+<script>
+(function () {
+  const b = document.getElementById('site-refresh');
+  const last = document.getElementById('site-lastcalc');
+  b.addEventListener('click', () => {
+    b.disabled = true;
+    b.textContent = '불러오는 중…';
+    window.location.reload();
+  });
+  fetch('data/status.json?_v=' + Date.now(), { cache: 'no-store' })
+    .then((r) => r.ok ? r.json() : null)
+    .then((status) => {
+      if (!status || !status.at) { last.textContent = '계산 기록 확인 불가'; return; }
+      const date = new Date(status.at);
+      last.textContent = isNaN(date.getTime()) ? '계산 시각 확인 불가' :
+        '최근 계산 ' + date.toLocaleString('ko-KR', {
+          timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric',
+          hour: '2-digit', minute: '2-digit', hour12: false
+        }) + ' KST';
+      if (status.steps && Object.values(status.steps).some((x) => x !== 'ok')) last.textContent += ' · 일부 실패';
+    })
+    .catch(() => { last.textContent = '계산 기록 확인 불가'; });
+})();
+</script>
 <script>
 // 정적 파일을 읽는 자리(예전 Claude 아티팩트의 저장소 호출을 대신한다)
 (function () {
-  const J = (u) => fetch(u, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const J = (u) => fetch(u + (u.includes('?') ? '&' : '?') + '_v=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   const snap = (d) => ({ exists: !!d, data: () => d });
   let ixP = null; const index = () => (ixP = ixP || J('data/chart_index.json').then((a) => a || []));
   const docs = (rows) => ({ docs: rows.map((r) => ({ data: () => r })) });

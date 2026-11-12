@@ -1,5 +1,5 @@
 {
-  "count": 233,
+  "count": 234,
   "fixed": [
     {
       "key": "NQ@F",
@@ -1269,6 +1269,11 @@
           "t": "LEN"
         },
         {
+          "t": "MKSI",
+          "key": "MKSI",
+          "name": "MKS Inc."
+        },
+        {
           "key": "ODFL",
           "name": "Old Dominion Freight Line, Inc.",
           "t": "ODFL"
@@ -1299,5 +1304,5 @@
   ],
   "source": "INVERT_WATCHLIST_V1",
   "source_updated": "2026-11-06T17:12:17.172Z",
-  "updated": "2026-11-10T13:49:03Z"
+  "updated": "2026-11-12T04:12:50Z"
 }

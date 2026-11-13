@@ -1,5 +1,5 @@
 {
-  "count": 234,
+  "count": 235,
   "fixed": [
     {
       "key": "NQ@F",
@@ -1300,9 +1300,19 @@
         }
       ],
       "name": "지수·ETF"
+    },
+    {
+      "name": "미분류",
+      "items": [
+        {
+          "t": "009150.KS",
+          "key": "009150.KS",
+          "name": "Samsung Electro-Mechanics Co., Ltd."
+        }
+      ]
     }
   ],
   "source": "INVERT_WATCHLIST_V1",
   "source_updated": "2026-11-06T17:12:17.172Z",
-  "updated": "2026-11-12T04:12:50Z"
+  "updated": "2026-11-13T05:06:37Z"
 }

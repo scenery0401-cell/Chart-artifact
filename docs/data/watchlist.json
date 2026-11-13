@@ -1,5 +1,5 @@
 {
-  "count": 235,
+  "count": 236,
   "fixed": [
     {
       "key": "NQ@F",
@@ -1310,9 +1310,19 @@
           "name": "Samsung Electro-Mechanics Co., Ltd."
         }
       ]
+    },
+    {
+      "name": "기술",
+      "items": [
+        {
+          "t": "EPAM",
+          "key": "EPAM",
+          "name": "EPAM Systems, Inc."
+        }
+      ]
     }
   ],
   "source": "INVERT_WATCHLIST_V1",
   "source_updated": "2026-11-06T17:12:17.172Z",
-  "updated": "2026-11-13T05:06:37Z"
+  "updated": "2026-11-13T06:11:08Z"
 }

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>스캔 · 스윙 랩</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>스캔: 검증된 셋업이 걸린 종목</h1>
+    <p class="sub">미국 시가총액 상위 1,000종목을 매일 장 마감 뒤 다시 훑는다. 규칙대로 걸린 종목 목록이지 매수 권유가 아니다. 실적 발표일은 확인하지 않는다.</p>
+  </header>
+  <div class="stale" id="stale" hidden></div>
+  <div class="seg" role="tablist" aria-label="스캔 종류" id="tabs" style="align-self:flex-start">
+    <button type="button" role="tab" data-k="deep" aria-pressed="true">깊은 눌림 0.618</button>
+    <button type="button" role="tab" data-k="pb" aria-pressed="false">채널엔진 눌림</button>
+    <button type="button" role="tab" data-k="turn" aria-pressed="false">바닥 반등(섹터)</button>
+  </div>
+
+  <section class="card" id="p-deep">
+    <h2>깊은 눌림 0.618 <span class="note" id="deepMeta"></span></h2>
+    <p class="note">주봉 2년 사이클의 고점→저점 0.618에 지정가, 0.786 종가 손절, 목표 0.5 / 0.382 / 0.236. '자리 안'은 최근 5거래일 안에 체결됐고 종가가 체결가 −10~+5%이며 목표를 아직 안 찍은 종목(11/8 검증: 체결가보다 2~10% 아래에서 사도 거래당 이익). '지정가 가까움'은 지정가까지 8% 이내. 2008~2016 같은 하락장에서는 그냥 들고 있는 것보다 못했다.</p>
+    <div class="bar">
+      <button type="button" class="pillbtn" id="fTop" aria-pressed="true">1년 상승률 상위 20%만</button>
+      <button type="button" class="pillbtn" id="fAi" aria-pressed="false">AI 체인 빼기</button>
+      <button type="button" class="pillbtn" id="fWl" aria-pressed="false">내 관심종목만</button>
+    </div>
+    <div class="tw" style="max-height:70vh;overflow-y:auto"><table>
+      <thead><tr><th>종목</th><th>섹터</th><th>상태</th><th class="n">종가</th><th class="n">지정가·체결가</th><th class="n">차이</th><th class="n">손절</th><th class="n">손절 폭</th><th class="n">1차 목표</th><th class="n">1년 순위</th><th class="n">사이클</th></tr></thead>
+      <tbody id="deepRows"></tbody></table></div>
+    <p class="note" id="deepRisk"></p>
+  </section>
+
+  <section class="card" id="p-pb" hidden>
+    <h2>채널엔진 눌림 지정가 <span class="note" id="pbMeta"></span></h2>
+    <p class="note">1년 상승률 상위 20% 종목에만, 엔진이 만든 눌림 지정가 계획을 쓴다(10년 백테스트 1,000종목 5칸 연 +24.0%, 최대낙폭 −26.3%). 지정가는 10거래일 유효, 종가가 손절선 아래면 취소. 여기는 지정가까지 8% 이내 주문과 막 체결된 종목만 보여 준다.</p>
+    <div class="tw" style="max-height:70vh;overflow-y:auto"><table>
+      <thead><tr><th>종목</th><th>섹터</th><th>상태</th><th class="n">종가</th><th class="n">지정가·체결가</th><th class="n">차이</th><th class="n">손절 폭</th><th class="n">1차 목표</th><th class="n">손익비</th><th>근거</th><th>엔진 판정</th></tr></thead>
+      <tbody id="pbRows"></tbody></table></div>
+  </section>
+
+  <section class="card" id="p-turn" hidden>
+    <h2>바닥 반등: 다음 섹터 신호 <span class="note" id="turnMeta"></span></h2>
+    <p class="note">바구니 지수가 1년 안 −30% 이하로 빠졌다가 3개월 +20% 이상 오르면 켜진다. 업종 단위 검증(2010~2025, 두 표본)에서 다음 12개월 업종 초과수익 +6.3%p · +4.2%p로 재현됐고, 과거 급등 테마 15개 모두 고점 전에 켜졌다.</p>
+    <div class="tw"><table>
+      <thead><tr><th>바구니</th><th>종류</th><th>상태</th><th class="n">1년 안 최저</th><th class="n">3개월</th><th class="n">켜지려면</th><th class="n">1년 고점 대비</th><th class="n">6개월</th><th>종목</th></tr></thead>
+      <tbody id="turnRows"></tbody></table></div>
+  </section>
+  <footer>가격 야후 파이낸스. 종목 목록은 시가총액 순 상위 1,000개(주가 10달러 이상).</footer>
+</div>
+<script src="assets/site.js"></script>
+<script>
+(function () {
+  'use strict';
+  nav('scan.html');
+  const st = { deep: [], pb: [], turn: [], wl: new Set(), top: true, ai: false, wlOnly: false };
+  const link = (t) => { const a = mk('a', 'tk', t); a.href = 'chart.html?t=' + encodeURIComponent(t) + '&add=1'; a.title = 'INVERT 자동 선 차트 열기 · 데이터가 없으면 계산 요청'; const c = mk('td'); c.appendChild(a); return c; };
+  const pc = (x) => (x === null || x === undefined ? '—' : (x > 0 ? '+' : '') + Number(x).toFixed(1) + '%');
+  const empty = (B, n, text) => { const tr = mk('tr'); const c = td(text, 'w'); c.colSpan = n; tr.appendChild(c); B.appendChild(tr); };
+  function deepState(r) {
+    if (r.status === 'holding') { const g = r.pnl_pct; if ((r.targets_hit || 0) === 0 && g >= -10 && g <= 5) return ['자리 안', 'ok', 0]; return null; }
+    if (r.status === 'waiting' && r.dist_pct !== undefined && r.dist_pct !== null && r.dist_pct <= 8) return ['지정가 가까움', 'warn', 1];
+    return null;
+  }
+  function deep() {
+    const B = $('deepRows'); B.replaceChildren();
+    const last = st.deep.length ? st.deep[0].last : null;
+    const rows = st.deep.map((r) => ({ r, s: deepState(r) })).filter((x) => x.s)
+      .filter((x) => x.r.status !== 'holding' || !last || (Date.parse(last) - Date.parse(x.r.entry_date)) / 864e5 <= 8)
+      .filter((x) => (!st.top || x.r.mom_pct >= 80) && (!st.ai || !x.r.ai_chain) && (!st.wlOnly || st.wl.has(x.r.t)))
+      .sort((a, b) => a.s[2] - b.s[2] || (a.r.stop_pct ?? 0) - (b.r.stop_pct ?? 0));
+    rows.forEach(({ r, s }) => { const tr = mk('tr'); const ref = r.status === 'holding' ? r.fill : r.limit; const diff = (r.close / ref - 1) * 100;
+      const c2 = mk('td'); c2.append(mk('span', 'chip ' + s[1], s[0])); if (r.ai_chain) c2.append(document.createTextNode(' '), mk('span', 'chip muted', 'AI 체인'));
+      tr.append(link(r.t), td(r.sector_ko || ''), c2, td(PX(r.close), 'n'), td(PX(ref), 'n'), td(pc(diff), 'n ' + sgn(diff)), td(PX(r.stop), 'n'), td(pc((r.stop / r.close - 1) * 100), 'n dn'),
+        td(PX(r.t1) + ' (' + pc((r.t1 / r.close - 1) * 100) + ')', 'n'), td('상위 ' + (100 - r.mom_pct) + '%', 'n'), td((r.cycle_mult || '—') + '배 · ' + (r.high_week || ''), 'n')); B.appendChild(tr); });
+    if (!rows.length) empty(B, 11, '조건에 맞는 종목이 없다.');
+    const inpos = rows.filter((x) => x.s[2] === 0).slice(0, 5); if (inpos.length) { const sum = inpos.reduce((a, x) => a + (x.r.stop / x.r.close - 1) * 100, 0);
+      $('deepRisk').textContent = '위에서 자리 안 ' + inpos.length + '개를 1/5씩 담아 전부 손절되면 계좌 기준 약 ' + (sum / 5).toFixed(1) + '%.'; } else $('deepRisk').textContent = '';
+  }
+  function pb() {
+    const B = $('pbRows'); B.replaceChildren();
+    const rows = st.pb.filter((r) => ((r.state_ko === '새 주문' || r.state_ko === '주문 대기') && r.gap !== null && r.gap <= 8) || (r.state_ko === '체결 진행' && (r.days ?? 9) <= 1 && (r.targets_hit || 0) === 0))
+      .sort((a, b) => (a.state_ko === '체결 진행' ? 0 : 1) - (b.state_ko === '체결 진행' ? 0 : 1) || (a.gap ?? 0) - (b.gap ?? 0));
+    rows.forEach((r) => { const tr = mk('tr'); const c2 = mk('td'); c2.append(mk('span', 'chip ' + (r.state_ko === '체결 진행' ? 'ok' : 'warn'), r.state_ko)); if (r.ai_chain) c2.append(document.createTextNode(' '), mk('span', 'chip muted', 'AI 체인'));
+      tr.append(link(r.t), td(r.sector_ko || ''), c2, td(PX(r.close), 'n'), td(PX(r.entry), 'n'), td(pc(r.gap), 'n ' + sgn(r.gap)), td(pc(r.stop_pct), 'n dn'), td(PX(r.t1) + ' (' + pc(r.t1_pct) + ')', 'n'), td(r.rr ?? '—', 'n'), td(r.sources_ko || ''), td(r.plan_title || '', 'w')); B.appendChild(tr); });
+    if (!rows.length) empty(B, 11, '지정가 8% 이내 주문이나 막 체결된 종목이 없다.');
+  }
+  function turn() {
+    const B = $('turnRows'); B.replaceChildren(); const f = (x) => (x === null || x === undefined ? '—' : (x > 0 ? '+' : '') + (x * 100).toFixed(0) + '%');
+    st.turn.forEach((r) => { const on = r.turn === true; const tr = mk('tr');
+      tr.append(td(r.name), td(r.kind), chipTd(r.state, on ? 'ok' : r.dd12 <= -0.3 ? 'warn' : 'muted'), td(f(r.dd12), 'n dn'), td(f(r.r3), 'n ' + sgn(r.r3)), td(r.need === null || r.need === undefined ? '—' : '3개월 ' + f(r.need) + 'p 더', 'n'), td(f(r.cur_dd), 'n ' + sgn(r.cur_dd)), td(f(r.mom6), 'n ' + sgn(r.mom6)), td(r.members, 'w')); B.appendChild(tr); });
+    if (!st.turn.length) empty(B, 9, '아직 계산 전이다.');
+  }
+  const tog = (id, key, fn) => $(id).addEventListener('click', () => { st[key] = !st[key]; $(id).setAttribute('aria-pressed', st[key] ? 'true' : 'false'); fn(); });
+  tog('fTop', 'top', deep); tog('fAi', 'ai', deep); tog('fWl', 'wlOnly', deep);
+  $('tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; $('tabs').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    ['deep', 'pb', 'turn'].forEach((k) => { $('p-' + k).hidden = k !== b.dataset.k; }); });
+  Promise.all([J('data/deep_candidates.json'), J('data/deep_meta.json'), J('data/pullback_candidates.json'), J('data/pullback_meta.json'), J('data/turn.json'), J('data/watchlist.json')]).then(([d, dm, p, pm, t, w]) => {
+    st.deep = d || []; st.pb = p || []; st.turn = t || [];
+    ((w && w.sectors) || []).forEach((s) => s.items.forEach((i) => st.wl.add(i.t)));
+    const m1 = Array.isArray(dm) ? dm[0] : dm; if (m1) { $('deepMeta').textContent = '· ' + m1.asof + ' 종가 · ' + m1.scanned + '종목 중 지정가 가까움 ' + m1.near + ' · 체결 진행 ' + m1.holding; staleNote(m1.asof, $('stale')); }
+    const m2 = Array.isArray(pm) ? pm[0] : pm; if (m2) $('pbMeta').textContent = '· ' + (m2.asof || '') + ' 종가';
+    if (st.turn.length) $('turnMeta').textContent = '· ' + st.turn[0].asof + ' 종가 · 켜진 바구니 ' + st.turn.filter((r) => r.turn === true).length + '개';
+    deep(); pb(); turn();
+  });
+})();
+</script>
+</body>
+</html>

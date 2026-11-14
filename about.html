@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>검증·한계 · 스윙 랩</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>검증과 한계</h1>
+    <p class="sub">이 사이트의 숫자가 어디서 왔고 어디까지 믿을 수 있는지.</p>
+  </header>
+
+  <section class="card">
+    <h2>자동 계산 상태</h2>
+    <div class="tw"><table><thead><tr><th>단계</th><th>마지막 결과</th></tr></thead><tbody id="steps"></tbody></table></div>
+    <p class="note" id="stAt"></p>
+  </section>
+
+  <section class="card">
+    <h2>'오를 확률' 검증 (2026-11-10)</h2>
+    <p class="note">결과를 보기 전에 기준을 고정했다. 2005~2018년 상위 1,000종목으로 만들고, 2019~2025년 상위 1,000종목과 1,001~2,000위 종목(만들 때 안 쓴 표본)으로 시험했다. 표의 숫자는 상위 1,000 · 1,001~2,000위 순서다.</p>
+    <div class="tw"><table>
+      <thead><tr><th>무엇</th><th>방식</th><th class="n">과거 평균</th><th class="n">실제 비율: 예측 상위 10% vs 하위 10%</th><th class="n">수익 차이(95% 구간)</th><th class="n">확률 정확도(BSS)</th><th>판정</th><th>메모</th></tr></thead>
+      <tbody id="valid"></tbody></table></div>
+    <ul class="plain">
+      <li><b>과거 같은 조건(칸)</b>: 200일선 위·아래 × 단기 눌림 정도(RSI 2) × 1년 상승률 순위 × 시장 200일선 × 시장폭, 96칸의 과거 빈도.</li>
+      <li><b>점수 모델</b>: 추세·눌림·변동성·시장 상태 16개 숫자를 합친 로지스틱 회귀.</li>
+      <li>방향(오른다·내린다)은 점수 모델이 오히려 반대로 나왔고, 칸 방식도 차이가 1%p 안팎이었다. 크게 움직일 확률(±10%)만 뚜렷하게 갈렸다.</li>
+      <li>'±10% 확률 중 어느 쪽이 큰지'로 방향을 정하는 표시는 시험해 보니 맞지 않아서(아래쪽이 크다고 나온 종목이 오히려 더 올랐다) 사이트에 넣지 않았다.</li>
+      <li id="cal"></li>
+      <li id="pk"></li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>다른 규칙의 검증 요약</h2>
+    <ul class="plain">
+      <li><b>깊은 눌림 0.618</b>: 무작위 날 진입보다 거래당 +4~9%p(3구간 중 2구간). 2008~2016에는 같은 종목을 그냥 들고 있는 것보다 못했고 낙폭 −42~−54%.</li>
+      <li><b>체결가 아래에서 사기</b>: 체결가보다 2~10% 아래에서 사도 거래당 이익(두 표본).</li>
+      <li><b>채널엔진 눌림 지정가</b>: 10년 백테스트, 1년 상승률 상위 20%만 썼을 때 연 +24.0%, 최대낙폭 −26.3%.</li>
+      <li><b>바닥 반등(업종)</b>: 다음 12개월 업종 초과수익 +6.3%p · +4.2%p, 상위 10% 업종이 될 비율 21% vs 11%.</li>
+      <li><b>자동 선(검은 선·흰 선)</b>: 147종목 시험에서 무작위로 옮긴 선과 반응이 같았다. 위치 참고용.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>한계</h2>
+    <ul class="plain">
+      <li>전부 오늘 살아 있는 종목으로 검증했다. 상장폐지된 종목이 빠져 있어서 과거 성과가 실제보다 좋게 나온다.</li>
+      <li>시험 구간(2019~2025)은 대체로 오른 시기다. 하락장에서 같은 숫자가 나온다는 보장은 없다.</li>
+      <li>실적 발표일, 뉴스, 증자 공시는 계산에 없다. 사기 전에 직접 확인해야 한다.</li>
+      <li>가격은 야후 파이낸스 일봉이다. 장중 값이 아니라 전날 종가 기준이다.</li>
+      <li>시장 판단의 경고 개수 기준(1~2개면 '줄여서')은 내가 정한 것이고 검증한 숫자가 아니다.</li>
+      <li>차트는 관심종목과 지수·선물만 계산한다. 종목을 더하려면 저장소의 docs/data/watchlist.json 을 고친다.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>아직 Claude에 남아 있는 것</h2>
+    <ul class="plain">
+      <li>개장 전·종베 전 브리핑, 주간 시장뷰, 실적 콜 정리, 이벤트 알림: 뉴스를 찾아 읽는 일이라 자동 계산으로 못 옮긴다.</li>
+      <li>나스닥 시나리오 뷰의 확률 판단, 깊은 눌림 주간 픽의 실적·뉴스 확인.</li>
+      <li>병목(SEC 공시) 스캔과 종이매매 대결은 다음 단계에 옮길 예정이다.</li>
+    </ul>
+  </section>
+  <footer>과거 통계와 조건 검색이지 매수 권유가 아니다. 판단은 네가.</footer>
+</div>
+<script src="assets/site.js"></script>
+<script>
+(function () {
+  'use strict';
+  nav('about.html');
+  const NAME = { deep: '깊은 눌림 스캔(1,000종목)', pullback: '채널엔진 눌림 스캔(1,000종목)', charts: '자동 선 차트(관심종목)', turn: '바닥 반등', today: '오늘 판단·확률' };
+  Promise.all([J('data/status.json'), J('data/today.json'), J('data/chart_status.json')]).then(([s, d, c]) => {
+    const B = $('steps');
+    if (s && s.steps) { ['deep', 'pullback', 'charts', 'turn', 'today'].forEach((k) => { if (!(k in s.steps)) return; const tr = mk('tr'); tr.append(td(NAME[k] || k), chipTd(s.steps[k] === 'ok' ? '성공' : '실패', s.steps[k] === 'ok' ? 'ok' : 'bad')); B.appendChild(tr); });
+      $('stAt').textContent = '마지막 실행 ' + s.at.replace('T', ' ').replace('Z', ' UTC') + (c ? ' · 차트 ' + c.ok + '개 성공' + (c.failed && c.failed.length ? ', 실패 ' + c.failed.length + '개(' + c.failed.slice(0, 8).map((x) => x.t).join(', ') + ')' : '') : ''); }
+    else { const tr = mk('tr'); const x = td('아직 실행 기록이 없다.', 'w'); x.colSpan = 2; tr.appendChild(x); B.appendChild(tr); }
+    const V = $('valid');
+    ((d && d.valid) || []).forEach((v) => { const tr = mk('tr'); tr.append(td(v.what), td(v.method), td(v.base, 'n'), td(v.hit, 'n'), td(v.spread, 'n'), td(v.bss, 'n'), chipTd(v.verdict, v.tone), td(v.note, 'w')); V.appendChild(tr); });
+    if (d && d.cal_note) $('cal').textContent = d.cal_note; else $('cal').hidden = true;
+    const ph = d && d.picks_hist; if (ph) $('pk').textContent = '추천 규칙(빠질 확률이 더 크지 않은 종목 중 +10% 확률 상위 15개)을 과거에 매일 적용했다면: 20일 평균 ' + P1(ph.s1.mean20) + ' · ' + P1(ph.s2.mean20) + '(전체 ' + P1(ph.s1.all_mean20) + ' · ' + P1(ph.s2.all_mean20) + '), +10% 넘은 비율 ' + P0(ph.s1.big) + ' · ' + P0(ph.s2.big) + ', −10% 넘게 빠진 비율 ' + P0(ph.s1.bad) + ' · ' + P0(ph.s2.bad) + ', 오른 비율 ' + P0(ph.s1.up) + ' · ' + P0(ph.s2.up) + ', 전체 평균을 이긴 날 ' + P0(ph.s1.win_days) + ' · ' + P0(ph.s2.win_days) + '. 평균은 높지만 절반은 내렸고 크게 빠진 경우도 네 번에 한 번을 넘는다(주 검증을 본 뒤 추가한 탐색).';
+  });
+})();
+</script>
+</body>
+</html>
